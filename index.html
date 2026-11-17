@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Del Prompt al Proceso, la app</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Plan: papel cálido + tinta azulada, violeta como acento de acción, lima solo como resaltador.
+   Layout: una columna de trabajo con pestañas arriba; tarjetas con sombra dura solo en la acción principal. */
+:root{
+  --paper:#F4F1EA; --card:#FBFAF6; --ink:#14122E; --muted:#5E5B78; --line:#D9D4C6;
+  --violet:#5B47E0; --violet-ink:#FFFFFF; --lime:#CFF24A; --lime-ink:#14122E;
+  --code:#ECE8DC; --ok:#1F7A4D; --warn:#9A5B00; --bad:#B3261E;
+  --disp:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14122E; --card:#1E1B45; --ink:#F4F1EA; --muted:#B4B0D4; --line:#38346B;
+    --violet:#8E7DFF; --violet-ink:#14122E; --code:#100E26; --ok:#6FD3A0; --warn:#F0B35A; --bad:#FF8F86;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14122E; --card:#1E1B45; --ink:#F4F1EA; --muted:#B4B0D4; --line:#38346B;
+  --violet:#8E7DFF; --violet-ink:#14122E; --code:#100E26; --ok:#6FD3A0; --warn:#F0B35A; --bad:#FF8F86;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+body{padding:0 0 64px}
+h1,h2,h3{font-family:var(--disp);text-wrap:balance;line-height:1.1;margin:0}
+h1{font-size:clamp(28px,5vw,44px);font-weight:800}
+h2{font-size:clamp(22px,3.4vw,30px);font-weight:800}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+a{color:var(--violet)}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+header{padding:28px 0 8px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}
+.lead{color:var(--muted);max-width:62ch;margin-top:10px}
+.hl{background:var(--lime);color:var(--lime-ink);padding:0 .18em;border-radius:6px}
+nav[role=tablist]{display:flex;gap:6px;overflow-x:auto;padding:16px 0 0;border-bottom:2px solid var(--ink);margin-top:14px;scrollbar-width:thin}
+nav button{font:600 15px var(--body);background:transparent;color:var(--muted);border:2px solid transparent;border-bottom:none;padding:10px 14px;border-radius:10px 10px 0 0;cursor:pointer;white-space:nowrap}
+nav button[aria-selected=true]{background:var(--ink);color:var(--paper)}
+nav button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+main{padding-top:24px}
+section[role=tabpanel][hidden]{display:none}
+.stack{display:flex;flex-direction:column;gap:18px}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:18px}
+.card.pop{box-shadow:6px 6px 0 var(--ink)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.btn{font:600 15px var(--body);border:2px solid var(--ink);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer}
+.btn.primary{background:var(--violet);color:var(--violet-ink);border-color:var(--ink)}
+.btn.lime{background:var(--lime);color:var(--lime-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.small{padding:5px 10px;font-size:13px}
+.chip{font:600 14px var(--body);border:2px solid var(--ink);background:transparent;color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.tag{display:inline-block;font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--code);color:var(--muted)}
+pre.code,textarea.code{font:400 13.5px/1.55 var(--mono);background:var(--code);border:1.5px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--ink);width:100%}
+textarea.code{resize:vertical;min-height:140px}
+label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+input[type=text],select,textarea{font:400 15px var(--body);width:100%;padding:9px 11px;border:2px solid var(--ink);border-radius:10px;background:var(--card);color:var(--ink)}
+textarea{resize:vertical}
+.ladder{display:flex;flex-direction:column;gap:10px}
+.rung{display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:14px 16px;border:2px solid var(--ink);border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;font:600 17px var(--disp)}
+.rung[aria-pressed=true]{background:var(--violet);color:var(--violet-ink);box-shadow:5px 5px 0 var(--ink)}
+.rung .n{width:34px;height:34px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font:700 15px var(--body);flex:none}
+.rung small{font:400 14px var(--body);opacity:.85;margin-left:auto;text-align:right}
+dl.facts{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:0}
+dl.facts dt{font-weight:600;color:var(--muted)}
+dl.facts dd{margin:0}
+.q{border-top:1.5px solid var(--line);padding-top:12px}
+.q fieldset{border:0;padding:0;margin:0}
+.q legend{font-weight:600;margin-bottom:6px}
+.q label{font-weight:400;display:inline-flex;align-items:center;gap:6px;margin-right:16px}
+.result{background:var(--lime);color:var(--lime-ink);border:2px solid var(--ink);border-radius:12px;padding:14px 16px;font-weight:600}
+.copied{color:var(--ok);font-weight:600;font-size:13px}
+.steps{display:flex;gap:8px;flex-wrap:wrap;counter-reset:s;padding:0;margin:0;list-style:none}
+.steps li{counter-increment:s;font:600 13px var(--body);padding:6px 12px;border-radius:999px;border:2px solid var(--line);color:var(--muted)}
+.steps li::before{content:counter(s) ". "}
+.steps li.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.steps li.done{border-color:var(--ok);color:var(--ok)}
+.md h1,.md h2,.md h3{font-size:18px;margin:14px 0 6px}
+.md p{margin:6px 0}.md ul,.md ol{margin:6px 0;padding-left:22px}
+.md table{border-collapse:collapse;font-size:14px;margin:8px 0}
+.md th,.md td{border:1.5px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+.md th{background:var(--code)}
+.md code{font:13px var(--mono);background:var(--code);padding:1px 5px;border-radius:5px}
+.tablewrap{overflow-x:auto}
+.log{font:13px/1.5 var(--mono);background:var(--code);border-radius:10px;padding:12px;max-height:220px;overflow:auto}
+.log div{padding:2px 0;border-bottom:1px dashed var(--line)}
+.notice{border-left:6px solid var(--warn);background:var(--card);padding:10px 14px;border-radius:0 10px 10px 0;font-size:14px}
+.notice.bad{border-color:var(--bad)}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+table.tools{border-collapse:collapse;width:100%;font-size:14px}
+table.tools th,table.tools td{border:1.5px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tools th{background:var(--code)}
+ol.how{padding-left:20px;margin:8px 0;display:flex;flex-direction:column;gap:6px}
+footer{margin-top:36px;font-size:14px;color:var(--muted)}
+@media (max-width:560px){dl.facts{grid-template-columns:1fr}.rung small{display:none}}
+@media (prefers-reduced-motion:no-preference){.rung,.btn,.chip{transition:background .15s,box-shadow .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Taller CPCE Mendoza · 17 de noviembre de 2026</p>
+  <h1>Del Prompt al <span class="hl">Proceso</span></h1>
+  <p class="lead">Elegí el nivel, copiá el prompt, armá tu propia receta y corré un agente con puntos de control. Todo con datos ficticios. La IA asiste, el contador firma.</p>
+  <p class="small muted" style="margin-top:8px">Cra. Tania Damiani · <a href="https://taniadamiani.netlify.app/">taniadamiani.netlify.app</a></p>
+  <nav role="tablist" aria-label="Secciones" id="tabs"></nav>
+</header>
+<main>
+
+<!-- NIVELES -->
+<section role="tabpanel" id="p-niveles" class="stack" aria-label="Niveles">
+  <div class="stack">
+    <h2>Cuatro niveles antes del proceso</h2>
+    <p class="muted">Tocá un nivel para ver cuándo usarlo y quién controla. Subí solo cuando el anterior ya no alcance.</p>
+  </div>
+  <div class="row" style="align-items:flex-start">
+    <div class="ladder" id="ladder" style="flex:1 1 280px"></div>
+    <div class="card pop" id="rungDetail" style="flex:1.3 1 300px"></div>
+  </div>
+  <div class="card stack">
+    <h3>¿Qué nivel necesito?</h3>
+    <div class="q"><fieldset><legend>¿La tarea se repite todos los meses?</legend>
+      <label><input type="radio" name="q1" value="1"> Sí</label><label><input type="radio" name="q1" value="0"> No</label></fieldset></div>
+    <div class="q"><fieldset><legend>¿Siempre trabajás con el mismo cliente, norma o criterio?</legend>
+      <label><input type="radio" name="q2" value="1"> Sí</label><label><input type="radio" name="q2" value="0"> No</label></fieldset></div>
+    <div class="q"><fieldset><legend>¿Hay que leer archivos, cruzarlos y armar un informe en pasos encadenados?</legend>
+      <label><input type="radio" name="q3" value="1"> Sí</label><label><input type="radio" name="q3" value="0"> No</label></fieldset></div>
+    <div class="result" id="quizResult" aria-live="polite">Respondé las tres preguntas.</div>
+  </div>
+</section>
+
+<!-- PROMPTS -->
+<section role="tabpanel" id="p-prompts" class="stack" hidden aria-label="Prompts">
+  <div class="stack"><h2>Biblioteca de prompts</h2>
+  <p class="muted">Copiá, pegá en tu herramienta y adaptá lo que está entre corchetes.</p></div>
+  <div class="row" id="lvlChips" role="group" aria-label="Filtrar por nivel"></div>
+  <div class="row" style="align-items:center"><button class="btn" id="cpAllP" type="button">Copiar todos los prompts de esta lista</button><span class="copied" id="cpAllPm" role="status"></span></div>
+  <div class="stack" id="promptList"></div>
+</section>
+
+<!-- CONSTRUCTOR -->
+<section role="tabpanel" id="p-constructor" class="stack" hidden aria-label="Constructor">
+  <div class="stack"><h2>Constructor de recetas</h2>
+  <p class="muted">Completá una vez y obtené las instrucciones del proyecto, la skill y el prompt del agente, alineados entre sí.</p></div>
+  <div class="card stack">
+    <div class="stack">
+      <div class="row" style="align-items:flex-end">
+        <div style="flex:1 1 240px"><label for="rList">Mis recetas</label><select id="rList"></select></div>
+        <div style="flex:1 1 220px"><label for="cPreset">Al crear una receta nueva, empezar</label>
+          <select id="cPreset"><option value="custom">En blanco</option><option value="iva">Con la plantilla de IVA compras</option><option value="banco">Con la plantilla de conciliación bancaria</option><option value="ind">Con la plantilla de indicadores y DuPont</option></select></div>
+      </div>
+      <div class="row" style="align-items:center"><button class="btn primary" id="rNew" type="button">Nueva receta</button><button class="btn" id="rDup" type="button">Duplicar</button><button class="btn" id="rDel" type="button">Eliminar</button><span class="copied" id="rMsg" role="status"></span></div>
+      <p class="small muted" id="rNote">Cada cambio se guarda solo en este navegador. Podés tener todas las recetas que quieras.</p>
+      <details><summary class="small">Copia de seguridad</summary>
+        <div class="stack" style="margin-top:10px">
+          <div class="row"><button class="btn small" id="rExport" type="button">Copiar todas mis recetas</button></div>
+          <div><label for="rJson">Pegá acá recetas copiadas para importarlas</label><textarea id="rJson" rows="3"></textarea></div>
+          <div class="row" style="align-items:center"><button class="btn small" id="rImport" type="button">Importar</button><span class="small muted" id="rImpMsg" role="status"></span></div>
+        </div>
+      </details>
+    </div>
+    <div class="row">
+      <div style="flex:1 1 240px"><label for="cOrg">Quién sos</label><input type="text" id="cOrg" value="un estudio contable de Mendoza, Argentina"></div>
+      <div style="flex:1 1 240px"><label for="cName">Nombre de la receta</label><input type="text" id="cName" value="control-libro-iva"></div>
+    </div>
+    <div><label for="cGoal">Objetivo en una frase</label><input type="text" id="cGoal" value=""></div>
+    <div><label for="cIn">Entradas (una por línea)</label><textarea id="cIn" rows="3"></textarea></div>
+    <div><label for="cSteps">Pasos (uno por línea)</label><textarea id="cSteps" rows="5"></textarea></div>
+    <div><label for="cRules">Reglas y límites (una por línea)</label><textarea id="cRules" rows="4"></textarea></div>
+    <div><label for="cOut">Formato de salida</label><textarea id="cOut" rows="2"></textarea></div>
+  </div>
+  <div class="row" role="group" aria-label="Resultado"><button class="chip" data-out="proyecto" aria-pressed="true">Proyecto</button><button class="chip" data-out="skill" aria-pressed="false">Skill (SKILL.md)</button><button class="chip" data-out="agente" aria-pressed="false">Agente</button></div>
+  <div class="stack">
+    <textarea class="code" id="cResult" rows="16" readonly aria-label="Texto generado"></textarea>
+    <div class="row"><button class="btn primary" id="cCopy">Copiar</button><button class="btn" id="cSave">Descargar .md</button><button class="btn" id="cCopyAll" type="button">Copiar las tres versiones</button><button class="btn lime" id="cToAgent">Usar en el agente en vivo</button><span class="copied" id="cMsg" role="status"></span></div>
+  </div>
+</section>
+
+<!-- DATOS -->
+<section role="tabpanel" id="p-datos" class="stack" hidden aria-label="Datos">
+  <div class="stack"><h2>Datos de prueba</h2>
+  <p class="muted">Caso ficticio: Distribuidora Andina S.R.L., cierre de octubre 2026. Bajalos para practicar acá o en cualquier otra herramienta.</p></div>
+  <div class="card pop stack">
+    <h3>Todo el kit</h3>
+    <p class="small muted">Todas las hojas juntas en un solo archivo de texto, cada una con su título.</p>
+    <div class="row" style="align-items:center"><button class="btn lime" id="cpAllD2" type="button">Copiar todas las hojas</button><button class="btn" id="dlAll2" type="button">Bajar todo (.txt)</button><a class="btn" href="datos/datos-de-prueba-taller.txt" target="_blank" rel="noopener">Abrir archivo</a></div>
+  </div>
+  <div class="grid" id="datosList"></div>
+  <p class="small muted" id="datosMsg" role="status"></p>
+</section>
+
+<!-- AGENTE -->
+<section role="tabpanel" id="p-agente" class="stack" hidden aria-label="Agente en vivo">
+  <div class="stack"><h2>Agente en vivo</h2>
+  <p class="muted">Un agente real con herramientas para leer las hojas del kit. Vos aprobás el plan, revisás los hallazgos y firmás.</p></div>
+  <ol class="steps" id="agSteps"><li>Objetivo</li><li>Plan</li><li>Ejecución</li><li>Revisión</li><li>Informe y firma</li></ol>
+  <div class="notice bad" id="agNo" hidden>Esta función necesita abrir la app dentro de Claude. Mientras tanto, copiá el prompt del agente desde la biblioteca y pegalo en tu herramienta con el kit adjunto.</div>
+
+  <div class="card stack">
+    <h3>1. Objetivo y datos</h3>
+    <div><label for="agGoal">Prompt del agente (editable)</label><textarea class="code" id="agGoal" rows="14"></textarea><div class="row" style="margin-top:8px;align-items:center"><button class="btn small primary" id="agCopyGoal" type="button">Copiar prompt</button><span class="copied" id="agCopyGoalM" role="status"></span></div></div>
+    <details><summary class="small">Ver las hojas disponibles</summary>
+      <div class="row" style="margin:10px 0" id="sheetChips" role="group" aria-label="Hojas"></div>
+      <div class="tablewrap card" id="sheetView" style="padding:8px"></div>
+      <div class="row" style="margin-top:10px"><button class="btn small" id="dlOne" type="button">Bajar esta hoja (.csv)</button><button class="btn small" id="cpOne" type="button">Copiar esta hoja</button></div>
+      <div style="margin-top:12px"><label for="ownCsv">Agregar tu propia hoja (CSV, solo datos anonimizados)</label>
+        <textarea id="ownCsv" rows="3" placeholder="columna1,columna2&#10;valor,valor"></textarea>
+        <div class="row" style="margin-top:6px"><button class="btn small" id="ownAdd">Agregar como 7_Propia</button><span class="small muted" id="ownMsg" role="status"></span></div>
+        <p class="small muted" style="margin-top:6px">No pegues CUIT, nombres ni importes reales de clientes. La herramienta recibe lo que pegues.</p></div>
+    </details>
+    <div class="row" style="align-items:center"><button class="btn primary" id="agPlan">Pedir el plan</button><button class="btn" id="agStop" hidden>Detener</button></div>
+    <div class="stack" style="border-top:1.5px solid var(--line);padding-top:14px">
+      <h3>Datos de prueba</h3>
+      <p class="small muted">Todos son ficticios. Bajalos para practicar en otra herramienta, por ejemplo Codex o un chat de tu preferencia.</p>
+      <div class="row" style="align-items:center"><button class="btn lime" id="dlAll" type="button">Bajar todos en un archivo</button><button class="btn" id="dlEach" type="button">Bajar uno por uno (.csv)</button><button class="btn primary" id="cpAllD" type="button">Copiar todos los datos</button><span class="copied" id="dlMsg" role="status"></span></div>
+    </div>
+  </div>
+
+  <div class="card stack" id="boxPlan" hidden>
+    <h3>2. Plan propuesto</h3>
+    <div class="md" id="planOut"></div>
+    <div class="row" style="align-items:center"><button class="btn small" id="planCopy" type="button">Copiar plan</button><span class="copied" id="planCopyM" role="status"></span></div>
+    <div class="row"><button class="btn primary" id="agRun">Aprobar plan y ejecutar</button></div>
+  </div>
+
+  <div class="card stack" id="boxRun" hidden>
+    <h3>3. Ejecución</h3>
+    <div><span class="tag">Herramientas invocadas</span><div class="log" id="toolLog" style="margin-top:6px" aria-live="polite"></div></div>
+    <div class="md" id="runOut" aria-live="polite"></div>
+    <div class="row" style="align-items:center"><button class="btn small" id="runCopy" type="button">Copiar hallazgos</button><button class="btn small" id="logCopy" type="button">Copiar registro de herramientas</button><span class="copied" id="runCopyM" role="status"></span></div>
+  </div>
+
+  <div class="card stack" id="boxReview" hidden>
+    <h3>4. Revisión humana</h3>
+    <p class="small muted">Antes de seguir, marcá lo que verificaste vos, fuera de la IA.</p>
+    <label class="small" style="font-weight:400"><input type="checkbox" class="rv"> Fuente: cada cifra se rastrea a su hoja y fila</label>
+    <label class="small" style="font-weight:400"><input type="checkbox" class="rv"> Recálculo: recalculé totales y ratios clave por mi cuenta</label>
+    <label class="small" style="font-weight:400"><input type="checkbox" class="rv"> Muestra: revisé a mano algunos hallazgos y algunos no-hallazgos</label>
+    <label class="small" style="font-weight:400"><input type="checkbox" class="rv"> Bitácora: el registro de herramientas coincide con lo que se dijo</label>
+    <div><label for="agAdj">Ajustes del contador (opcional)</label><textarea id="agAdj" rows="2" placeholder="Ej.: el período distinto se imputa a octubre por criterio del estudio"></textarea></div>
+    <div class="row"><button class="btn primary" id="agReport" disabled>Generar borrador del informe</button></div>
+  </div>
+
+  <div class="card stack" id="boxReport" hidden>
+    <h3>5. Informe y firma</h3>
+    <div class="md" id="repOut"></div>
+    <div class="row" style="align-items:center"><button class="btn small" id="repCopy" type="button">Copiar informe</button><span class="copied" id="repCopyM" role="status"></span></div>
+    <div class="row">
+      <div style="flex:1 1 220px"><label for="agSign">Nombre de quien firma</label><input type="text" id="agSign" placeholder="Nombre y matrícula"></div>
+    </div>
+    <label class="small" style="font-weight:400"><input type="checkbox" id="agOk"> Revisé el informe y asumo la responsabilidad profesional.</label>
+    <div class="row"><button class="btn lime" id="agFirm" disabled>Firmar y generar bitácora</button></div>
+    <div id="boxLog" hidden class="stack"><pre class="code" id="bitacora"></pre>
+      <div class="row"><button class="btn primary" id="bCopy">Copiar bitácora</button><button class="btn" id="bSave">Descargar .txt</button><span class="copied" id="bMsg" role="status"></span></div></div>
+  </div>
+  <div class="notice bad" id="agErr" hidden role="alert"></div>
+</section>
+
+<!-- DONDE -->
+<section role="tabpanel" id="p-donde" class="stack" hidden aria-label="Dónde hacerlo">
+  <div class="stack"><h2>Dónde hacerlo</h2>
+  <p class="muted">Elegí tu herramienta y seguí los pasos para cada nivel. La regla común: instrucciones, archivos de conocimiento y permisos mínimos.</p></div>
+  <div class="row" id="toolChips" role="group" aria-label="Herramienta"></div>
+  <div class="stack" id="toolSteps"></div>
+  <div class="notice">Los nombres y la ubicación de cada opción cambian con el plan y las versiones. Si no la encontrás, buscá en la ayuda de tu herramienta: proyectos, GPTs, Gems, skills o agentes.</div>
+  <div class="card stack">
+    <h3>Construí tu propia app con agente</h3>
+    <p class="small muted">Esta app se arma pidiéndoselo a Claude. Pegá este prompt en un chat nuevo de Claude (con la función de artefactos activa) y publicá el resultado.</p>
+    <pre class="code" id="metaPrompt"></pre>
+    <div class="row"><button class="btn primary" id="mCopy">Copiar prompt</button><span class="copied" id="mMsg" role="status"></span></div>
+  </div>
+</section>
+
+</main>
+<div id="manual" class="card pop stack" hidden role="dialog" aria-label="Copiar a mano" style="position:fixed;left:12px;right:12px;bottom:12px;max-width:760px;margin:0 auto;z-index:30;max-height:70%">
+  <p class="small"><strong>Copialo a mano.</strong> Tu visor no dejó copiar solo. Mantené apretado sobre el texto, elegí Seleccionar todo y después Copiar.</p>
+  <textarea class="code" id="manualTa" rows="7" readonly aria-label="Texto para copiar"></textarea>
+  <div class="row"><button class="btn small" id="manualSel" type="button">Seleccionar todo</button><button class="btn small primary" id="manualClose" type="button">Cerrar</button></div>
+</div>
+<footer>Datos del kit 100% ficticios (Distribuidora Andina S.R.L.). Los estadísticos y normas citados en el taller deben verificarse el día que los uses.</footer>
+</div>
+
+<script>
+const KIT = {"0_LEEME":[["Tema","Detalle"],["Empresa","Distribuidora Andina S.R.L. (ficticia; datos 100% sintéticos)"],["1_LibroIVA y 2_ARCA","Control de crédito fiscal IVA compras de octubre 2026"],["3_Banco y 4_Mayor","Conciliación bancaria de octubre 2026. Saldo inicial de ambos al 30/09/2026: 1850000. La columna Saldo es el saldo corrido tras cada movimiento."],["5_ESP y 6_ER","Estados contables anuales de los ejercicios 2024 y 2025 (no corresponden a octubre 2026)"],["Consigna","No inferir ni estimar datos faltantes: marcarlos. Reportar las inconsistencias sin corregirlas. Toda salida requiere revisión y firma del profesional."]],"1_LibroIVA":[["Fuente","Fecha","Tipo","Pto Vta","Numero","CUIT","Proveedor","Neto","Alícuota","IVA","Total"],["Libro IVA Compras del estudio","2026-10-02","Factura A",5,318,"30-99990008-7","Ferretería Industrial Cóndor S.R.L.",798757.84,0.21,167739.15,966496.99],["Libro IVA Compras del estudio","2026-10-03","Factura A",5,144,"30-99990009-0","Seguros Aconcagua S.A.",547279.99,0.21,114928.8,662208.79],["Libro IVA Compras del estudio","2026-10-04","Factura A",12,270,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",217073.82,0.21,45585.5,262659.32],["Libro IVA Compras del estudio","2026-10-05","Factura A",12,214,"30-99990001-5","Aceros del Oeste S.A.",636634.87,0.21,133693.32,770328.19],["Libro IVA Compras del estudio","2026-10-05","Factura A",3,328,"30-99990010-4","Gráfica Los Andes S.R.L.",578048.27,0.21,121390.14,699438.41],["Libro IVA Compras del estudio","2026-10-08","Factura A",2,123,"30-99990004-9","Energía Mendoza S.A.",42306.71,0.27,11422.81,53729.52],["Libro IVA Compras del estudio","2026-10-09","Factura A",12,174,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",808474.71,0.21,169779.69,978254.4],["Libro IVA Compras del estudio","2026-10-09","Factura A",3,256,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",452157.84,0.21,94953.15,547110.99],["Libro IVA Compras del estudio","2026-10-10","Factura A",12,125,"30-99990005-7","Servicios Informáticos Huarpe S.R.L.",783252.83,0.21,164483.09,947735.92],["Libro IVA Compras del estudio","2026-10-10","Factura A",3,307,"30-99990010-4","Gráfica Los Andes S.R.L.",116834.22,0.21,24535.19,141369.41],["Libro IVA Compras del estudio","2026-10-11","Factura A",2,102,"30-99990001-5","Aceros del Oeste S.A.",497289.34,0.21,104430.76,601720.1],["Libro IVA Compras del estudio","2026-10-12","Factura A",5,222,"30-99990009-0","Seguros Aconcagua S.A.",878573.85,0.21,184500.51,1063074.36],["Libro IVA Compras del estudio","2026-10-13","Factura A",2,316,"30-99990009-0","Seguros Aconcagua S.A.",52860,0.21,11100.6,63960.6],["Libro IVA Compras del estudio","2026-10-14","Factura A",12,158,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",122522.62,0.21,25729.75,148252.37],["Libro IVA Compras del estudio","2026-10-15","Factura A",5,149,"30-99990010-4","Gráfica Los Andes S.R.L.",168208.4,0.21,35323.76,203532.16],["Libro IVA Compras del estudio","2026-10-15","Factura A",12,230,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",505252.77,0.21,106103.08,611355.85],["Libro IVA Compras del estudio","2026-10-15","Factura A",12,230,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",505252.77,0.21,106103.08,611355.85],["Libro IVA Compras del estudio","2026-10-16","Factura A",3,191,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",169595.42,0.21,35615.04,205210.46],["Libro IVA Compras del estudio","2026-10-17","Factura A",12,165,"30-99990002-3","Logística Cuyana S.R.L.",770319.82,0.21,161767.16,932086.98],["Libro IVA Compras del estudio","2026-10-17","Factura A",3,312,"30-99990003-1","Packaging Andino S.A.",414955.63,0.21,87140.68,502096.31],["Libro IVA Compras del estudio","2026-10-17","Factura A",5,319,"30-99990001-5","Aceros del Oeste S.A.",473182.22,0.21,99368.27,572550.49],["Libro IVA Compras del estudio","2026-10-18","Factura A",3,298,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",242864.18,0.21,51001.48,293865.66],["Libro IVA Compras del estudio","2026-10-20","Factura A",5,289,"30-99990004-9","Energía Mendoza S.A.",80639.76,0.27,21772.74,102412.5],["Libro IVA Compras del estudio","2026-10-22","Factura A",5,199,"30-99990002-3","Logística Cuyana S.R.L.",467159.49,0.21,98103.49,565262.98],["Libro IVA Compras del estudio","2026-10-22","Factura A",12,206,"30-99990009-0","Seguros Aconcagua S.A.",948377.7,0.21,199159.32,1147537.02],["Libro IVA Compras del estudio","2026-10-22","Factura A",5,239,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",865612.26,0.21,181778.57,1047390.83],["Libro IVA Compras del estudio","2026-10-26","Factura A",2,138,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",382473.49,0.21,80319.43,462792.92],["Libro IVA Compras del estudio","2026-10-26","Factura A",3,183,"30-99990009-0","Seguros Aconcagua S.A.",72092.29,0.21,15139.38,87231.67],["Libro IVA Compras del estudio","2026-10-27","Factura A",12,115,"30-99990003-1","Packaging Andino S.A.",704790.48,0.21,148006,852796.48],["Libro IVA Compras del estudio","2026-10-27","Factura A",12,126,"30-99990006-5","Lácteos del Valle S.A.",850776.95,0.21,178663.16,1029440.11],["Libro IVA Compras del estudio","2026-10-28","Factura A",5,150,"30-99990011-2","Agroinsumos Tupungato S.A.",686884.72,0.105,72122.9,759007.62],["Libro IVA Compras del estudio","2026-10-29","Factura A",12,106,"30-99990002-3","Logística Cuyana S.R.L.",586937.89,0.21,123256.96,710194.85],["Libro IVA Compras del estudio","2026-10-30","Factura A",12,247,"30-99990006-5","Lácteos del Valle S.A.",778830.18,0.105,81777.17,860607.35],["Libro IVA Compras del estudio","2026-10-30","Factura A",2,278,"30-99990003-1","Packaging Andino S.A.",52769.61,0.21,11081.62,63851.23],["Libro IVA Compras del estudio","2026-10-30","Factura A",3,287,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",801083.13,0.21,168227.46,969310.59],["Libro IVA Compras del estudio","2026-10-30","Factura A",12,325,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",150449.29,0.21,31594.35,182043.64],["Libro IVA Compras del estudio","2026-10-31","Factura A",2,184,"30-99990003-1","Packaging Andino S.A.",681243,0.21,143061.03,824304.03],["Libro IVA Compras del estudio","2026-10-31","Factura A",5,264,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",98508.59,0.21,20686.8,119195.39]],"2_ARCA":[["Fuente","Fecha","Tipo","Pto Vta","Numero","CUIT","Proveedor","Neto","Alícuota","IVA","Total"],["ARCA - Mis Comprobantes (simulado)","2026-09-29","Factura A",5,289,"30-99990004-9","Energía Mendoza S.A.",80639.76,0.27,21772.74,102412.5],["ARCA - Mis Comprobantes (simulado)","2026-10-02","Factura A",5,318,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",798757.84,0.21,167739.15,966496.99],["ARCA - Mis Comprobantes (simulado)","2026-10-03","Factura A",5,144,"30-99990009-0","Seguros Aconcagua S.A.",547279.99,0.21,114928.8,662208.79],["ARCA - Mis Comprobantes (simulado)","2026-10-05","Factura A",12,214,"30-99990001-5","Aceros del Oeste S.A.",636634.87,0.21,133693.32,770328.19],["ARCA - Mis Comprobantes (simulado)","2026-10-05","Factura A",12,295,"30-99990011-2","Agroinsumos Tupungato S.A.",44669.3,0.105,4690.28,49359.58],["ARCA - Mis Comprobantes (simulado)","2026-10-05","Factura A",3,328,"30-99990010-4","Gráfica Los Andes S.R.L.",578048.27,0.21,121390.14,699438.41],["ARCA - Mis Comprobantes (simulado)","2026-10-07","Factura A",5,132,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",401467.84,0.21,84308.25,485776.09],["ARCA - Mis Comprobantes (simulado)","2026-10-07","Factura A",5,213,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",307880.47,0.21,64654.9,372535.37],["ARCA - Mis Comprobantes (simulado)","2026-10-08","Factura A",2,123,"30-99990004-9","Energía Mendoza S.A.",42306.71,0.27,11422.81,53729.52],["ARCA - Mis Comprobantes (simulado)","2026-10-09","Factura A",12,174,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",808474.71,0.21,169779.69,978254.4],["ARCA - Mis Comprobantes (simulado)","2026-10-09","Factura A",3,256,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",452157.84,0.21,94953.15,547110.99],["ARCA - Mis Comprobantes (simulado)","2026-10-10","Factura A",12,125,"30-99990005-7","Servicios Informáticos Huarpe S.R.L.",783252.83,0.21,164483.09,947735.92],["ARCA - Mis Comprobantes (simulado)","2026-10-10","Factura A",3,307,"30-99990010-4","Gráfica Los Andes S.R.L.",116834.22,0.21,24535.19,141369.41],["ARCA - Mis Comprobantes (simulado)","2026-10-11","Factura A",2,102,"30-99990001-5","Aceros del Oeste S.A.",497289.34,0.21,104430.76,601720.1],["ARCA - Mis Comprobantes (simulado)","2026-10-12","Factura A",5,222,"30-99990009-0","Seguros Aconcagua S.A.",878573.85,0.21,184500.51,1063074.36],["ARCA - Mis Comprobantes (simulado)","2026-10-13","Factura A",2,316,"30-99990009-0","Seguros Aconcagua S.A.",52860,0.21,11100.6,63960.6],["ARCA - Mis Comprobantes (simulado)","2026-10-14","Factura A",12,158,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",122522.62,0.21,25729.75,148252.37],["ARCA - Mis Comprobantes (simulado)","2026-10-15","Factura A",5,149,"30-99990010-4","Gráfica Los Andes S.R.L.",168208.4,0.21,35323.76,203532.16],["ARCA - Mis Comprobantes (simulado)","2026-10-15","Factura A",12,230,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",505252.77,0.21,106103.08,611355.85],["ARCA - Mis Comprobantes (simulado)","2026-10-16","Factura A",3,191,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",169595.42,0.21,35615.04,205210.46],["ARCA - Mis Comprobantes (simulado)","2026-10-17","Factura A",12,165,"30-99990002-3","Logística Cuyana S.R.L.",770319.82,0.21,161767.16,932086.98],["ARCA - Mis Comprobantes (simulado)","2026-10-17","Factura A",3,312,"30-99990003-1","Packaging Andino S.A.",414955.63,0.21,87140.68,502096.31],["ARCA - Mis Comprobantes (simulado)","2026-10-17","Factura A",5,319,"30-99990001-5","Aceros del Oeste S.A.",473182.22,0.21,99368.27,572550.49],["ARCA - Mis Comprobantes (simulado)","2026-10-18","Factura A",3,298,"30-99990012-0","Mantenimiento Integral Uco S.R.L.",242864.18,0.21,51001.48,293865.66],["ARCA - Mis Comprobantes (simulado)","2026-10-22","Factura A",5,199,"30-99990002-3","Logística Cuyana S.R.L.",467159.49,0.21,98103.49,565262.98],["ARCA - Mis Comprobantes (simulado)","2026-10-22","Factura A",12,206,"30-99990009-0","Seguros Aconcagua S.A.",948377.7,0.21,199159.32,1147537.02],["ARCA - Mis Comprobantes (simulado)","2026-10-22","Factura A",5,239,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",865612.26,0.21,181778.57,1047390.83],["ARCA - Mis Comprobantes (simulado)","2026-10-26","Factura A",2,138,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",382473.49,0.21,80319.43,462792.92],["ARCA - Mis Comprobantes (simulado)","2026-10-26","Factura A",3,183,"30-99990009-0","Seguros Aconcagua S.A.",63092.29,0.21,13249.38,76341.67],["ARCA - Mis Comprobantes (simulado)","2026-10-27","Factura A",12,115,"30-99990003-1","Packaging Andino S.A.",704790.48,0.21,148006,852796.48],["ARCA - Mis Comprobantes (simulado)","2026-10-27","Factura A",12,126,"30-99990006-5","Lácteos del Valle S.A.",850776.95,0.105,89331.58,940108.53],["ARCA - Mis Comprobantes (simulado)","2026-10-29","Factura A",12,106,"30-99990002-3","Logística Cuyana S.R.L.",586937.89,0.21,123256.96,710194.85],["ARCA - Mis Comprobantes (simulado)","2026-10-30","Factura A",12,247,"30-99990006-5","Lácteos del Valle S.A.",778830.18,0.105,81777.17,860607.35],["ARCA - Mis Comprobantes (simulado)","2026-10-30","Factura A",2,278,"30-99990003-1","Packaging Andino S.A.",52769.61,0.21,11081.62,63851.23],["ARCA - Mis Comprobantes (simulado)","2026-10-30","Factura A",3,287,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",801083.13,0.21,168227.46,969310.59],["ARCA - Mis Comprobantes (simulado)","2026-10-30","Factura A",12,325,"30-99990008-1","Estación de Servicio Ruta 7 S.A.",150449.29,0.21,31594.35,182043.64],["ARCA - Mis Comprobantes (simulado)","2026-10-31","Factura A",2,184,"30-99990003-1","Packaging Andino S.A.",681243,0.21,143061.03,824304.03],["ARCA - Mis Comprobantes (simulado)","2026-10-31","Factura A",5,264,"30-99990007-3","Ferretería Industrial Cóndor S.R.L.",98508.59,0.21,20686.8,119195.39]],"3_Banco":[["Fecha","Concepto","Importe","Saldo"],["2026-10-02","Pago proveedor Energía Mendoza S.A.",-122497.4,1727502.6],["2026-10-03","Cobranza cliente Supermercados del Sur",273721.58,2001224.18],["2026-10-03","Pago proveedor Logística Cuyana S.R.L.",-319413.35,1681810.83],["2026-10-03","Pago proveedor Seguros Aconcagua S.A.",-397069.82,1284741.01],["2026-10-04","Pago proveedor Seguros Aconcagua S.A.",-589675.82,695065.19],["2026-10-06","Cobranza cliente Bodega Los Álamos",429298.16,1124363.35],["2026-10-07","Cobranza cliente Supermercados del Sur",732921.58,1857284.93],["2026-10-08","Pago proveedor Mantenimiento Integral Uco S.R.L.",-567897.78,1289387.15],["2026-10-11","Cobranza cliente Supermercados del Sur",466273.77,1755660.92],["2026-10-11","Pago proveedor Ferretería Industrial Cóndor S.R.L.",-490560.68,1265100.24],["2026-10-11","Pago proveedor Servicios Informáticos Huarpe S.R.L.",-465375.41,799724.83],["2026-10-13","Cobranza cliente Bodega Los Álamos",184937.01,984661.84],["2026-10-14","Cobranza cliente Bodega Los Álamos",218034.76,1202696.6],["2026-10-14","Cobranza cliente Vinos Alta Montaña",860587.28,2063283.88],["2026-10-15","Pago proveedor Estación de Servicio Ruta 7 S.A.",-316949.41,1746334.47],["2026-10-15","Pago proveedor Energía Mendoza S.A. (factura 10/2026)",-45900,1700434.47],["2026-10-18","Pago proveedor Gráfica Los Andes S.R.L.",-135760.7,1564673.77],["2026-10-21","Pago proveedor Aceros del Oeste S.A.",-446261.77,1118412.0],["2026-10-21","Transferencia recibida - cliente no identificado",138000,1256412.0],["2026-10-28","Cobranza cliente Supermercados del Sur",258191.31,1514603.31],["2026-10-31","Comisión mantenimiento de cuenta",-18500,1496103.31],["2026-10-31","IVA 21% s/ comisión",-3885,1492218.31],["2026-10-31","Imp. Ley 25.413 (créditos y débitos)",-41230.55,1450987.76]],"4_Mayor":[["Fecha","Concepto","Importe","Saldo"],["2026-10-02","Pago proveedor Energía Mendoza S.A.",-122497.4,1727502.6],["2026-10-03","Cobranza cliente Supermercados del Sur",273721.58,2001224.18],["2026-10-03","Pago proveedor Logística Cuyana S.R.L.",-319413.35,1681810.83],["2026-10-03","Pago proveedor Seguros Aconcagua S.A.",-397069.82,1284741.01],["2026-10-04","Pago proveedor Seguros Aconcagua S.A.",-589675.82,695065.19],["2026-10-06","Cobranza cliente Bodega Los Álamos",429298.16,1124363.35],["2026-10-07","Cobranza cliente Supermercados del Sur",732921.58,1857284.93],["2026-10-08","Pago proveedor Mantenimiento Integral Uco S.R.L.",-567897.78,1289387.15],["2026-10-11","Cobranza cliente Supermercados del Sur",466273.77,1755660.92],["2026-10-11","Pago proveedor Ferretería Industrial Cóndor S.R.L.",-490560.68,1265100.24],["2026-10-11","Pago proveedor Servicios Informáticos Huarpe S.R.L.",-465375.41,799724.83],["2026-10-13","Cobranza cliente Bodega Los Álamos",184937.01,984661.84],["2026-10-14","Cobranza cliente Bodega Los Álamos",218034.76,1202696.6],["2026-10-14","Cobranza cliente Vinos Alta Montaña",860587.28,2063283.88],["2026-10-15","Pago proveedor Estación de Servicio Ruta 7 S.A.",-316949.41,1746334.47],["2026-10-15","Pago proveedor Energía Mendoza S.A. (factura 10/2026)",-54900,1691434.47],["2026-10-18","Pago proveedor Gráfica Los Andes S.R.L.",-135760.7,1555673.77],["2026-10-21","Pago proveedor Aceros del Oeste S.A.",-446261.77,1109412.0],["2026-10-27","Cheque 00045211 - Packaging Andino S.A.",-312500,796912.0],["2026-10-28","Cobranza cliente Supermercados del Sur",258191.31,1055103.31],["2026-10-28","Cheque 00045212 - Logística Cuyana S.R.L.",-187300,867803.31],["2026-10-30","Cheque 00045213 - Gráfica Los Andes S.R.L.",-95400,772403.31],["2026-10-30","Depósito en cuenta - cobranza 30/10",420000,1192403.31],["2026-10-31","Depósito en cuenta - cobranza 31/10",265000,1457403.31]],"5_ESP":[["Concepto","2024","2025"],["Caja y bancos",2150000,3480000],["Créditos por ventas",6900000,9850000],["Bienes de cambio",7400000,8950000],["Otros créditos",980000,1420000],["Activo corriente",17430000,23700000],["Bienes de uso",11200000,12050000],["Activo no corriente",11200000,12050000],["ACTIVO TOTAL",28630000,35750000],["Deudas comerciales",5100000,7200000],["Deudas bancarias y financieras",3900000,5300000],["Deudas fiscales y sociales",1700000,2050000],["Pasivo corriente",10700000,14550000],["Deudas bancarias a largo plazo",4000000,3200000],["Pasivo no corriente",4000000,3200000],["PASIVO TOTAL",14700000,17750000],["Patrimonio neto",13930000,17000000],["PASIVO + PATRIMONIO NETO",28630000,34750000]],"6_ER":[["Concepto","2024","2025"],["Ventas netas",41200000,52800000],["Costo de ventas",-28300000,-36100000],["Resultado bruto",12900000,16700000],["Gastos de comercialización",-4100000,-5300000],["Gastos de administración",-3300000,-4050000],["Resultado operativo",5500000,7350000],["Resultados financieros y por tenencia",-1900000,-2650000],["Resultado antes de impuesto",3600000,4700000],["Impuesto a las ganancias",-1050000,-1650000],["RESULTADO NETO",2550000,3050000]]};
+
+/* ---------- utilidades ---------- */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function openManual(text){ const ta=$('#manualTa'); ta.value=text; $('#manual').hidden=false; ta.focus(); try{ ta.select(); ta.setSelectionRange(0,text.length); }catch(e){} }
+$('#manualClose').addEventListener('click',()=>{ $('#manual').hidden=true; });
+$('#manualSel').addEventListener('click',()=>{ const ta=$('#manualTa'); ta.focus(); ta.select(); try{ ta.setSelectionRange(0,ta.value.length); }catch(e){} });
+async function copyText(text,msgEl){
+  try{ await navigator.clipboard.writeText(text); flash(msgEl,'Copiado'); return true; }catch(e){}
+  try{ const ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,text.length); const ok=document.execCommand('copy'); ta.remove(); if(ok){ flash(msgEl,'Copiado'); return true; } }catch(e){}
+  openManual(text); flash(msgEl,'Copialo desde la ventana'); return false;
+}
+function flash(el,t){ if(!el) return; el.textContent=t; setTimeout(()=>{el.textContent='';},3500); }
+async function saveFile(filename,data,msgEl,fallbackEl){
+  try{ const d = await claude.use('downloads'); if(d){ await d.save({filename,data}); flash(msgEl,'Archivo listo'); return; } }catch(e){}
+  flash(msgEl,'No se pudo descargar: copiá el texto desde la ventana'); await copyText(data,msgEl);
+}
+function md(src){
+  const lines = String(src||'').replace(/\r/g,'').split('\n'); let out=[], i=0;
+  const inl = t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  while(i<lines.length){
+    const l=lines[i];
+    if(/^\s*\|.*\|\s*$/.test(l) && i+1<lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i+1])){
+      const head=l.trim().slice(1,-1).split('|').map(x=>x.trim()); i+=2; const rows=[];
+      while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ rows.push(lines[i].trim().slice(1,-1).split('|').map(x=>x.trim())); i++; }
+      out.push('<div class="tablewrap"><table><thead><tr>'+head.map(h=>'<th>'+inl(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+inl(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'); continue;
+    }
+    let m;
+    if((m=l.match(/^(#{1,4})\s+(.*)$/))){ out.push('<h3>'+inl(m[2])+'</h3>'); i++; continue; }
+    if(/^\s*[-*]\s+/.test(l)){ const it=[]; while(i<lines.length && /^\s*[-*]\s+/.test(lines[i])){ it.push('<li>'+inl(lines[i].replace(/^\s*[-*]\s+/,''))+'</li>'); i++; } out.push('<ul>'+it.join('')+'</ul>'); continue; }
+    if(/^\s*\d+[.)]\s+/.test(l)){ const it=[]; while(i<lines.length && /^\s*\d+[.)]\s+/.test(lines[i])){ it.push('<li>'+inl(lines[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>'); i++; } out.push('<ol>'+it.join('')+'</ol>'); continue; }
+    if(l.trim()===''){ i++; continue; }
+    out.push('<p>'+inl(l)+'</p>'); i++;
+  }
+  return out.join('');
+}
+
+/* ---------- pestañas ---------- */
+const TABS=[['niveles','Niveles'],['prompts','Prompts'],['constructor','Constructor'],['datos','Datos'],['agente','Agente en vivo'],['donde','Dónde hacerlo']];
+const tabsEl=$('#tabs');
+TABS.forEach(([id,label])=>{ const b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab'); b.id='t-'+id; b.textContent=label; b.setAttribute('aria-controls','p-'+id); b.addEventListener('click',()=>showTab(id)); tabsEl.appendChild(b); });
+function showTab(id,push=true){
+  if(!TABS.some(t=>t[0]===id)) id='niveles';
+  TABS.forEach(([t])=>{ $('#p-'+t).hidden = t!==id; $('#t-'+t).setAttribute('aria-selected', t===id?'true':'false'); });
+  if(push){ try{ history.replaceState(null,'','#'+id); }catch(e){ try{location.hash=id;}catch(_){} } }
+}
+addEventListener('hashchange',()=>showTab(location.hash.slice(1),false));
+
+/* ---------- contenido ---------- */
+const LEVELS = {
+  prompt:{n:1,name:'Prompt',short:'Una instrucción puntual',que:'Una instrucción puntual en un chat.',cuando:'La tarea es única o la estás probando.',riesgo:'Depende de que cada vez recuerdes pedirlo bien.',control:'Vos, leyendo cada respuesta.'},
+  proyecto:{n:2,name:'Proyecto',short:'Contexto guardado',que:'Instrucciones y archivos guardados que heredan todos los chats.',cuando:'Trabajás siempre con el mismo cliente, norma o criterio.',riesgo:'Cargar datos reales o material vencido.',control:'Vos, más el contexto que cargaste.'},
+  skill:{n:3,name:'Skill',short:'Receta reutilizable',que:'Una receta versionada de una tarea: entradas, pasos, reglas y formato.',cuando:'La tarea se repite y querés el mismo resultado cada vez.',riesgo:'Una regla mal escrita se replica en todo el equipo.',control:'El estudio, que fija formato y reglas.'},
+  agente:{n:4,name:'Agente',short:'Ejecuta pasos',que:'La IA ejecuta varios pasos con herramientas hacia un objetivo.',cuando:'Hay lectura, cruce y armado de informe encadenados.',riesgo:'Acciones y conclusiones sin supervisión.',control:'Un humano aprueba el plan y el resultado.'}
+};
+const LAB1 = 'Actuá como controlador de IVA compras de un estudio contable argentino. Te paso 1_LibroIVA (registro del estudio) y 2_ARCA (comprobantes recibidos). Cruzá por CUIT, punto de venta y número. Devolvé una tabla: comprobante, tipo de hallazgo, diferencia en $ y acción sugerida. Revisá omitidos, sobrantes, duplicados, importes, alícuotas, CUIT y período. No estimes ni completes datos: marcá "sin dato". Al final, mostrá cómo verificaste los totales.';
+const LAB2 = 'Actuá como conciliador bancario. Tenés 3_Banco (extracto) y 4_Mayor (libro banco) de octubre. Ambos parten de un saldo inicial de $ 1.850.000,00. Emparejá movimientos por fecha, concepto e importe. Listá las partidas conciliatorias en tres grupos: pendientes del banco, pendientes del libro y errores. Armá la conciliación hasta un saldo ajustado único y mostrá la cuenta. Si algo no se puede emparejar, dejalo abierto: no fuerces el cierre.';
+const LAB3 = 'Actuá como analista financiero. Con 5_ESP y 6_ER (2024 y 2025): 1) verificá que Activo = Pasivo + Patrimonio neto en cada año y avisame si no cuadra antes de seguir; 2) calculá liquidez corriente, prueba ácida, endeudamiento, margen neto, días de cobro y ROE; 3) descomponé el ROE con DuPont; 4) redactá una lectura ejecutiva de 5 líneas. No inventes datos faltantes.';
+const BIT = 'Armá la bitácora de esta corrida con este formato, una línea por paso: Entrada (archivo y hoja), Control realizado, Resultado (cantidad de hallazgos), Supuestos aplicados, Estado de revisión (pendiente) y Firma: [PENDIENTE DE CONTADOR]. No marques nada como aprobado.';
+const PROJ = ['Sos asistente de un estudio contable de Mendoza, Argentina. Trabajás para un contador público que revisa y firma todo lo que entregás.','','Reglas fijas:','1. Usá solo los archivos del proyecto y lo que te pase en el chat. Si falta un dato, escribí "sin dato"; no estimes ni inventes.','2. Citá siempre la fuente: nombre del archivo, hoja y fila, o norma y artículo.','3. Si una norma puede haber cambiado, avisá que hay que verificar vigencia antes de usarla.','4. Mostrá los cálculos paso a paso para poder recalcularlos.','5. No uses CUIT, nombres ni importes reales: trabajá con datos anonimizados o ficticios.','6. Formato de salida: tabla de hallazgos (comprobante, diferencia en $, acción sugerida) y, debajo, un resumen de 5 líneas.','7. Cerrá cada respuesta con "Supuestos y puntos a revisar".'].join('\n');
+const PROJ_USE = 'Con el archivo adjunto, hacé el control de IVA compras del período. Aplicá las reglas del proyecto y dejame al final los supuestos y lo que debo revisar antes de firmar.';
+const SKILL = ['---','name: control-libro-iva','description: Cruza el Libro IVA compras del estudio contra los comprobantes recibidos en ARCA y lista las diferencias. Usar cuando el usuario pida controlar crédito fiscal IVA de un período.','---','','# Control de Libro IVA compras (versión 1.0)','','## Entradas esperadas','- Hoja 1: registro del estudio (CUIT, punto de venta, número, fecha, neto, alícuota, IVA).','- Hoja 2: comprobantes recibidos en ARCA, mismas columnas.','- Si falta una columna, detenete y pedila.','','## Pasos','1. Cruzá por CUIT + punto de venta + número.','2. Clasificá: en ARCA y no en el libro, en el libro y no en ARCA, importe distinto, duplicado, alícuota incorrecta, período distinto, CUIT mal tipeado.','3. Calculá la diferencia en $ de cada caso y el efecto sobre el crédito fiscal.','4. Verificá que los totales de ambas hojas cierren con lo detallado.','','## Reglas','- No estimes ni completes datos: usá "sin dato".','- El período distinto puede no ser error: marcalo como "a criterio del profesional".','- No corrijas ningún registro: solo informá.','','## Formato de salida','Tabla: comprobante | tipo de hallazgo | diferencia en $ | acción sugerida.','Debajo: totales verificados y "Supuestos y puntos a revisar".'].join('\n');
+const SKILL_USE = 'Usá la skill control-libro-iva con las hojas 1_LibroIVA y 2_ARCA de octubre 2026.';
+const AGENT = ["Objetivo: preparar el borrador del cierre de octubre 2026 de Distribuidora Andina S.R.L. (empresa ficticia) para revisión del contador.", "", "Entradas: las hojas del kit; la primera, 0_LEEME, explica el caso. IVA y banco son de octubre 2026; el balance y el estado de resultados son anuales de 2024 y 2025. Permisos: solo lectura. No modifiques ningún archivo de origen.", "", "Pasos, en este orden:", "1. Leé 0_LEEME y validá que las hojas tengan las columnas esperadas. Si falta algo, avisame.", "2. Control IVA: cruzá 1_LibroIVA contra 2_ARCA y listá las diferencias.", "3. Conciliación: 3_Banco y 4_Mayor ya traen el saldo inicial y un saldo corrido. Conciliá hasta un saldo ajustado único y mostrá la cuenta.", "4. Indicadores: verificá que el balance cuadre en cada año. Si no cuadra, informá la diferencia, calculá los ratios de 2024 y, para 2025, mostrá dos escenarios rotulados \"provisorio\" (con el patrimonio neto informado y con Activo menos Pasivo) sin elegir uno: decide el contador.", "5. Informe: borrador ejecutivo de una página con hallazgos priorizados.", "", "Límites:", "- No estimes datos faltantes: usá \"sin dato\".", "- Si un control no cierra o los datos son inconsistentes, informalo y seguí con los pasos que no dependen de ese problema; dejá el bloqueo anotado y consultame.", "- No saques conclusiones sobre irregularidades: solo reportá diferencias.", "", "Puntos de control: mostrame el plan antes de empezar y los hallazgos antes de redactar el informe.", "", "Salida: bitácora paso a paso, tablas de hallazgos, informe borrador y lista de supuestos."].join('\n');
+
+const PROMPTS = [
+ {lvl:'prompt',title:'Control 1. Libro IVA contra ARCA',hint:'Adjuntá las hojas 1_LibroIVA y 2_ARCA. Leé la tabla antes de aceptar nada.',text:LAB1},
+ {lvl:'prompt',title:'Control 2. Conciliación bancaria',hint:'Adjuntá 3_Banco y 4_Mayor. Si la IA fuerza un saldo que cierra justo, pedile la cuenta paso a paso.',text:LAB2},
+ {lvl:'prompt',title:'Control 3. Indicadores y DuPont',hint:'Adjuntá 5_ESP y 6_ER. La pregunta de cuadre va primero.',text:LAB3},
+ {lvl:'prompt',title:'Bitácora de la corrida',hint:'Pegala al final de cualquier corrida para dejar registro.',text:BIT},
+ {lvl:'proyecto',title:'Instrucciones del proyecto',hint:'Pegalas en el campo de instrucciones y subí solo material permitido: normativa pública, plantillas y criterios del estudio.',text:PROJ},
+ {lvl:'proyecto',title:'Cómo pedir una tarea dentro del proyecto',hint:'Ya no repetís rol, formato ni advertencias.',text:PROJ_USE},
+ {lvl:'skill',title:'Plantilla de skill (SKILL.md)',hint:'Guardala con ese nombre en una carpeta. Probala con el kit y subile la versión cada vez que cambies una regla.',text:SKILL},
+ {lvl:'skill',title:'Cómo invocar la skill',hint:'Se llama por nombre, con las hojas del período.',text:SKILL_USE},
+ {lvl:'agente',title:'Prompt de agente: cierre mensual',hint:'Pedí primero el plan, aprobalo, y marcá dos puntos de control humano. Probalo en la pestaña Agente en vivo.',text:AGENT}
+];
+
+/* ---------- NIVELES ---------- */
+let curLvl='prompt';
+function drawLadder(){
+  const lad=$('#ladder'); lad.innerHTML='';
+  Object.entries(LEVELS).forEach(([k,v])=>{
+    const b=document.createElement('button'); b.type='button'; b.className='rung'; b.setAttribute('aria-pressed',k===curLvl?'true':'false');
+    b.innerHTML='<span class="n">'+v.n+'</span><span>'+v.name+'</span><small>'+v.short+'</small>';
+    b.addEventListener('click',()=>{curLvl=k;drawLadder();drawDetail();}); lad.appendChild(b);
+  });
+}
+function drawDetail(){
+  const v=LEVELS[curLvl]; const d=$('#rungDetail');
+  d.innerHTML='<h3>'+v.name+'</h3><dl class="facts" style="margin-top:12px"><dt>Qué es</dt><dd>'+v.que+'</dd><dt>Usalo cuando</dt><dd>'+v.cuando+'</dd><dt>Riesgo</dt><dd>'+v.riesgo+'</dd><dt>Quién controla</dt><dd>'+v.control+'</dd></dl><div class="row" style="margin-top:14px"><button class="btn primary" id="goP">Ver prompts de este nivel</button>'+(curLvl==='agente'?'<button class="btn lime" id="goA">Probar el agente</button>':'')+'<button class="btn" id="cpL">Copiar resumen</button><span class="copied" id="cpLm" role="status"></span></div>';
+  $('#cpL').addEventListener('click',()=>copyText(v.name+'\nQué es: '+v.que+'\nUsalo cuando: '+v.cuando+'\nRiesgo: '+v.riesgo+'\nQuién controla: '+v.control,$('#cpLm')));
+  $('#goP').addEventListener('click',()=>{lvlFilter=curLvl;drawChips();drawPrompts();showTab('prompts');});
+  const ga=$('#goA'); if(ga) ga.addEventListener('click',()=>showTab('agente'));
+}
+function quiz(){
+  const g=n=>{const r=$('input[name='+n+']:checked');return r?r.value:null;};
+  const a=g('q1'),b=g('q2'),c=g('q3'); const el=$('#quizResult');
+  if(a===null||b===null||c===null){el.textContent='Respondé las tres preguntas.';return;}
+  let k;
+  if(a==='1'&&c==='1') k='agente'; else if(a==='1') k='skill'; else if(b==='1') k='proyecto'; else k='prompt';
+  const why={agente:'La tarea se repite y encadena pasos con archivos: un agente con puntos de control.',skill:'La tarea se repite: escribila una vez como skill y que la use todo el equipo.',proyecto:'Mismo contexto cada vez: guardalo en un proyecto.',prompt:'Es puntual: un buen prompt alcanza.'}[k];
+  el.textContent='Nivel recomendado: '+LEVELS[k].name+'. '+why; curLvl=k; drawLadder(); drawDetail();
+}
+$$('input[name=q1],input[name=q2],input[name=q3]').forEach(i=>i.addEventListener('change',quiz));
+
+/* ---------- PROMPTS ---------- */
+let lvlFilter='todos';
+function drawChips(){
+  const w=$('#lvlChips'); w.innerHTML='';
+  [['todos','Todos'],...Object.entries(LEVELS).map(([k,v])=>[k,v.name])].forEach(([k,l])=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=l; b.setAttribute('aria-pressed',k===lvlFilter?'true':'false');
+    b.addEventListener('click',()=>{lvlFilter=k;drawChips();drawPrompts();}); w.appendChild(b);
+  });
+}
+$('#cpAllP').addEventListener('click',()=>copyText(PROMPTS.filter(p=>lvlFilter==='todos'||p.lvl===lvlFilter).map(p=>'## '+LEVELS[p.lvl].name+': '+p.title+'\n\n'+p.text).join('\n\n---\n\n'),$('#cpAllPm')));
+function drawPrompts(){
+  const w=$('#promptList'); w.innerHTML='';
+  PROMPTS.filter(p=>lvlFilter==='todos'||p.lvl===lvlFilter).forEach((p,i)=>{
+    const c=document.createElement('div'); c.className='card stack';
+    c.innerHTML='<div class="row" style="justify-content:space-between;align-items:center"><div><span class="tag">'+LEVELS[p.lvl].name+'</span><h3 style="margin-top:6px">'+esc(p.title)+'</h3></div><div class="row" style="align-items:center"><span class="copied" role="status"></span><button class="btn small primary" type="button">Copiar</button></div></div><p class="small muted">'+esc(p.hint)+'</p><pre class="code"></pre>';
+    $('pre',c).textContent=p.text;
+    $('button',c).addEventListener('click',()=>copyText(p.text,$('.copied',c)));
+    w.appendChild(c);
+  });
+}
+
+/* ---------- CONSTRUCTOR ---------- */
+const PRESETS={
+ iva:{name:'control-libro-iva',goal:'Cruzar el Libro IVA compras del estudio contra los comprobantes recibidos en ARCA y listar las diferencias.',inp:'Hoja con el registro del estudio (CUIT, punto de venta, número, fecha, neto, alícuota, IVA)\nHoja con los comprobantes recibidos en ARCA, mismas columnas',steps:'Cruzá por CUIT + punto de venta + número\nClasificá omitidos, sobrantes, duplicados, importes, alícuotas, CUIT y período\nCalculá la diferencia en $ de cada caso y su efecto sobre el crédito fiscal\nVerificá que los totales de ambas hojas cierren',rules:'No estimes ni completes datos: usá "sin dato"\nEl período distinto puede no ser error: marcalo "a criterio del profesional"\nNo corrijas ningún registro: solo informá',out:'Tabla: comprobante | tipo de hallazgo | diferencia en $ | acción sugerida. Debajo, totales verificados y "Supuestos y puntos a revisar".'},
+ banco:{name:'conciliacion-bancaria',goal:'Conciliar el extracto bancario contra el mayor de la cuenta hasta un saldo ajustado único.',inp:'Extracto del banco (fecha, concepto, importe)\nMayor de la cuenta banco (fecha, concepto, importe)\nSaldo inicial común de ambos',steps:'Emparejá movimientos por fecha, concepto e importe\nListá partidas pendientes del banco, pendientes del libro y errores\nArmá la conciliación desde ambos lados hasta un saldo ajustado único\nMostrá la cuenta paso a paso',rules:'Si algo no se puede emparejar, dejalo abierto: no fuerces el cierre\nNo imputes una transferencia a un cliente sin respaldo\nNo corrijas asientos: solo proponé',out:'Tres listas de partidas, la cuenta de conciliación y "Supuestos y puntos a revisar".'},
+ ind:{name:'indicadores-dupont',goal:'Calcular indicadores financieros y DuPont, verificando antes que el balance cuadre.',inp:'Estado de situación patrimonial de dos años\nEstado de resultados de dos años',steps:'Verificá que Activo = Pasivo + Patrimonio neto en cada año y avisá si no cuadra antes de seguir\nCalculá liquidez corriente, prueba ácida, endeudamiento, margen neto, días de cobro y ROE\nDescomponé el ROE con DuPont\nRedactá una lectura ejecutiva de 5 líneas',rules:'Si el balance no cuadra, detenete y avisá\nNo inventes datos faltantes\nMostrá cada cálculo para poder recalcularlo',out:'Tabla de indicadores por año, DuPont y lectura ejecutiva de 5 líneas.'},
+ custom:{name:'',goal:'',inp:'',steps:'',rules:'',out:''}
+};
+let outKind='proyecto';
+const lines=t=>t.split('\n').map(s=>s.trim()).filter(Boolean);
+function buildAll(){
+  const org=$('#cOrg').value.trim()||'un estudio contable', name=($('#cName').value.trim()||'mi-tarea').toLowerCase().replace(/[^a-z0-9-]+/g,'-'), goal=$('#cGoal').value.trim()||'[objetivo]',
+   inp=lines($('#cIn').value), steps=lines($('#cSteps').value), rules=lines($('#cRules').value), out=$('#cOut').value.trim()||'[formato de salida]';
+  const num=a=>a.map((s,i)=>(i+1)+'. '+s).join('\n'), bul=a=>a.map(s=>'- '+s).join('\n');
+  return {
+   proyecto:['Sos asistente de '+org+'. Trabajás para un contador público que revisa y firma todo lo que entregás.','','Tarea habitual: '+goal,'','Entradas habituales:',bul(inp)||'- [entradas]','','Reglas fijas:',num(rules.concat(['Citá siempre la fuente: archivo, hoja y fila.','Mostrá los cálculos paso a paso.','Cerrá cada respuesta con "Supuestos y puntos a revisar".']) ),'','Formato de salida: '+out].join('\n'),
+   skill:['---','name: '+name,'description: '+goal+' Usar cuando el usuario pida esta tarea para un período.','---','','# '+name+' (versión 1.0)','','## Entradas esperadas',bul(inp)||'- [entradas]','- Si falta una columna o una hoja, detenete y pedila.','','## Pasos',num(steps)||'1. [pasos]','','## Reglas',bul(rules)||'- [reglas]','','## Formato de salida',out].join('\n'),
+   agente:['Objetivo: '+goal,'','Entradas:',bul(inp)||'- [entradas]','Permisos: solo lectura. No modifiques ningún archivo de origen.','','Pasos, en este orden:',num(steps)||'1. [pasos]','','Límites:',bul(rules.concat(['Si un control no cierra o los datos son inconsistentes, parás y me consultás; no fuerces el resultado.','No saques conclusiones sobre irregularidades: solo reportá diferencias.'])),'','Puntos de control: mostrame el plan antes de empezar y los hallazgos antes de redactar el informe.','','Salida: bitácora paso a paso, '+out]
+   .join('\n')
+  };
+}
+function drawBuilder(){ $('#cResult').value=buildAll()[outKind]; }
+const LS='ppp-recetas-v1'; let recipes=[], curId=null, canStore=true, delArmed=false, saveT=null;
+function loadStore(){ try{ const s=localStorage.getItem(LS); if(s){ const o=JSON.parse(s); if(o&&Array.isArray(o.recipes)){ recipes=o.recipes.filter(r=>r&&r.id&&typeof r.name==='string'); curId=o.cur; } } }catch(e){ canStore=false; } }
+function saveStore(){ try{ localStorage.setItem(LS,JSON.stringify({recipes,cur:curId})); return true; }catch(e){ canStore=false; $('#rNote').textContent='Este navegador no permite guardar. Usá la copia de seguridad para no perder tus recetas.'; return false; } }
+const FIELDS=[['org','cOrg'],['name','cName'],['goal','cGoal'],['inp','cIn'],['steps','cSteps'],['rules','cRules'],['out','cOut']];
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function readFields(){ const o={}; FIELDS.forEach(([k,id])=>{o[k]=$('#'+id).value;}); return o; }
+function writeFields(r){ FIELDS.forEach(([k,id])=>{ $('#'+id).value=r[k]||''; }); drawBuilder(); }
+function cur(){ return recipes.find(r=>r.id===curId)||null; }
+function drawList(){
+  const s=$('#rList'); s.innerHTML='';
+  recipes.forEach(r=>{ const o=document.createElement('option'); o.value=r.id; o.textContent=(r.name||'Sin nombre'); if(r.id===curId) o.selected=true; s.appendChild(o); });
+}
+function fromPreset(k){ const p=PRESETS[k]; return {org:'un estudio contable de Mendoza, Argentina',name:p.name||('receta-'+(recipes.length+1)),goal:p.goal,inp:p.inp,steps:p.steps,rules:p.rules,out:p.out}; }
+function addRecipe(fields){ const r=Object.assign({id:uid()},fields); recipes.push(r); curId=r.id; writeFields(r); drawList(); saveStore(); return r; }
+function touch(){ const r=cur(); if(!r) return; Object.assign(r,readFields()); const o=$('#rList option[value="'+r.id+'"]'); if(o) o.textContent=r.name||'Sin nombre'; clearTimeout(saveT); saveT=setTimeout(()=>{ if(saveStore()) flash($('#rMsg'),'Guardado'); },350); }
+function disarmDel(){ delArmed=false; $('#rDel').textContent='Eliminar'; }
+$('#rList').addEventListener('change',e=>{ disarmDel(); const r=recipes.find(x=>x.id===e.target.value); if(r){ curId=r.id; writeFields(r); saveStore(); } });
+$('#rNew').addEventListener('click',()=>{ disarmDel(); addRecipe(fromPreset($('#cPreset').value)); flash($('#rMsg'),'Receta nueva y limpia'); $('#cGoal').focus(); });
+$('#rDup').addEventListener('click',()=>{ disarmDel(); const r=cur(); const f=readFields(); f.name=(f.name||'receta')+'-copia'; addRecipe(f); flash($('#rMsg'),'Receta duplicada'); });
+$('#rDel').addEventListener('click',()=>{
+  if(!delArmed){ delArmed=true; $('#rDel').textContent='¿Seguro? Tocá de nuevo'; setTimeout(disarmDel,4000); return; }
+  disarmDel(); recipes=recipes.filter(r=>r.id!==curId);
+  if(!recipes.length){ addRecipe(fromPreset('custom')); } else { curId=recipes[0].id; writeFields(recipes[0]); drawList(); saveStore(); }
+  flash($('#rMsg'),'Receta eliminada');
+});
+$('#rExport').addEventListener('click',()=>{ const j=JSON.stringify({recipes}); $('#rJson').value=j; copyText(j,$('#rMsg')); });
+$('#rImport').addEventListener('click',()=>{
+  const m=$('#rImpMsg'); let o; try{ o=JSON.parse($('#rJson').value); }catch(e){ m.textContent='El texto no es una copia válida.'; return; }
+  const arr=Array.isArray(o)?o:(o&&o.recipes); if(!Array.isArray(arr)||!arr.length){ m.textContent='No encontré recetas para importar.'; return; }
+  let n=0; arr.forEach(x=>{ if(x&&typeof x==='object'){ const f={}; FIELDS.forEach(([k])=>{ f[k]=typeof x[k]==='string'?x[k]:''; }); f.id=uid(); recipes.push(f); n++; } });
+  if(!n){ m.textContent='No encontré recetas para importar.'; return; }
+  curId=recipes[recipes.length-1].id; writeFields(cur()); drawList(); saveStore(); m.textContent='Importadas: '+n+'.'; $('#rJson').value='';
+});
+$$('#cOrg,#cName,#cGoal,#cIn,#cSteps,#cRules,#cOut').forEach(i=>i.addEventListener('input',()=>{ drawBuilder(); touch(); }));
+$$('[data-out]').forEach(b=>b.addEventListener('click',()=>{outKind=b.dataset.out;$$('[data-out]').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));drawBuilder();}));
+$('#cCopy').addEventListener('click',()=>copyText($('#cResult').value,$('#cMsg')));
+$('#cCopyAll').addEventListener('click',()=>{ const o=buildAll(); copyText('## PROYECTO\n\n'+o.proyecto+'\n\n## SKILL\n\n'+o.skill+'\n\n## AGENTE\n\n'+o.agente,$('#cMsg')); });
+$('#cSave').addEventListener('click',()=>saveFile((outKind==='skill'?'SKILL':outKind)+'.md',$('#cResult').value,$('#cMsg')));
+$('#cToAgent').addEventListener('click',()=>{ $('#agGoal').value=buildAll().agente; showTab('agente'); });
+
+/* ---------- AGENTE ---------- */
+const sheets = Object.assign({}, KIT);
+let sampleFn=null, ctrl=null, toolCalls=[], planText='', findings='', reportText='', readSheets=new Set();
+function csvOf(rows){ return rows.map(r=>r.map(c=>{const s=String(c); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\n'); }
+let selSheet=null;
+function drawSheets(sel){
+  const names=Object.keys(sheets); sel=sel||names[0]; selSheet=sel; const w=$('#sheetChips'); w.innerHTML='';
+  names.forEach(n=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=n; b.setAttribute('aria-pressed',n===sel?'true':'false'); b.addEventListener('click',()=>drawSheets(n)); w.appendChild(b); });
+  const rows=sheets[sel]; $('#sheetView').innerHTML='<table class="tools"><thead><tr>'+rows[0].map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+}
+const BOM='\ufeff';
+function bundleText(){ return Object.entries(sheets).map(([n,r])=>'=== '+n+' ===\n'+csvOf(r)).join('\n\n')+'\n'; }
+$('#dlOne').addEventListener('click',()=>saveFile(selSheet+'.csv',BOM+csvOf(sheets[selSheet]),$('#dlMsg')));
+$('#cpOne').addEventListener('click',()=>copyText(csvOf(sheets[selSheet]),$('#dlMsg')));
+$('#cpAllD').addEventListener('click',()=>copyText(bundleText(),$('#dlMsg')));
+$('#dlAll').addEventListener('click',()=>saveFile('datos-de-prueba-taller.txt',bundleText(),$('#dlMsg')));
+$('#dlEach').addEventListener('click',async()=>{ for(const n of Object.keys(sheets)){ try{ const d=await claude.use('downloads'); if(!d){ flash($('#dlMsg'),'La descarga no está disponible aquí: usá Copiar esta hoja.'); return; } await d.save({filename:n+'.csv',data:BOM+csvOf(sheets[n])}); }catch(e){ flash($('#dlMsg'),'Descarga detenida.'); return; } } flash($('#dlMsg'),'Listo: '+Object.keys(sheets).length+' archivos'); });
+function setStep(n){ $$('#agSteps li').forEach((li,i)=>{ li.className = i<n?'done':(i===n?'on':''); }); }
+function showErr(t){ const e=$('#agErr'); e.hidden=!t; e.textContent=t||''; }
+function errText(e){ if(!e) return 'Error desconocido.'; if(e.code==='not_granted') return 'No diste permiso para usar Claude desde la app. Volvé a intentar y aceptá.'; if(e.code==='rate_limited') return 'Demasiadas solicitudes seguidas. Esperá un momento y reintentá.'; if(e.name==='AbortError'||e.code==='aborted') return 'Detuviste la ejecución.'; return 'No se pudo completar: '+(e.message||e.code||e); }
+function busy(on){ if(on){ ['agPlan','agRun','agReport'].forEach(id=>{ $('#'+id).disabled=true; }); } else { $('#agPlan').disabled=!sampleFn; $('#agRun').disabled=!planText; $('#agReport').disabled=!$$('.rv').every(x=>x.checked); } $('#agStop').hidden=!on; }
+function sheetListText(){ return Object.entries(sheets).map(([n,r])=>n+' ('+(r.length-1)+' filas; columnas: '+r[0].join(', ')+')').join('\n'); }
+const TOOLS = ()=>[
+ {name:'listar_hojas',description:'Lista las hojas disponibles con cantidad de filas y nombres de columnas.',inputSchema:{type:'object',properties:{}},
+  execute:()=>{ logTool('listar_hojas',{},Object.keys(sheets).length+' hojas'); return sheetListText(); }},
+ {name:'leer_hoja',description:'Devuelve el contenido completo de una hoja en formato CSV.',inputSchema:{type:'object',properties:{hoja:{type:'string',description:'Nombre exacto de la hoja, por ejemplo 1_LibroIVA'}},required:['hoja']},
+  execute:({hoja})=>{ const r=sheets[hoja]; if(!r){ logTool('leer_hoja',{hoja},'no existe'); throw new Error('La hoja no existe: '+hoja); } readSheets.add(hoja); logTool('leer_hoja',{hoja},(r.length-1)+' filas'); return csvOf(r); }},
+ {name:'sumar_columna',description:'Suma una columna numérica de una hoja por código, para verificar totales sin calcular de cabeza.',inputSchema:{type:'object',properties:{hoja:{type:'string'},columna:{type:'string',description:'Encabezado exacto de la columna'}},required:['hoja','columna']},
+  execute:({hoja,columna})=>{ const r=sheets[hoja]; if(!r) throw new Error('La hoja no existe: '+hoja); const ix=r[0].indexOf(columna); if(ix<0) throw new Error('La columna no existe: '+columna); let s=0,n=0; r.slice(1).forEach(x=>{const v=Number(x[ix]); if(!isNaN(v)&&x[ix]!==''){s+=v;n++;}}); s=Math.round(s*100)/100; logTool('sumar_columna',{hoja,columna},'suma '+s+' ('+n+' filas)'); return JSON.stringify({hoja,columna,suma:s,filas:n}); }}
+];
+function logTool(t,args,res){ const o={t:new Date(),tool:t,args,res}; toolCalls.push(o); const d=document.createElement('div'); d.textContent=o.t.toLocaleTimeString('es-AR')+'  '+t+'('+Object.values(args).join(', ')+')  →  '+res; const l=$('#toolLog'); l.appendChild(d); l.scrollTop=l.scrollHeight; }
+async function callSample(input,opts,render){
+  ctrl=new AbortController(); busy(true); showErr('');
+  try{
+    const r=await sampleFn(input,Object.assign({signal:ctrl.signal,cache:false,onText:({text})=>render&&render(text)},opts||{}));
+    if(render) render(r.text); return r.text;
+  }finally{ busy(false); ctrl=null; }
+}
+$('#agStop').addEventListener('click',()=>{ if(ctrl) ctrl.abort(); });
+$('#agPlan').addEventListener('click',async()=>{
+  if(!sampleFn) return; setStep(1); $('#boxPlan').hidden=false; $('#boxRun').hidden=true; $('#boxReview').hidden=true; $('#boxReport').hidden=true; $('#planOut').innerHTML='<p class="muted">Pensando el plan…</p>'; $('#agRun').disabled=true;
+  try{
+    planText = await callSample('Sos un agente de apoyo a un contador. Todavía NO ejecutes nada ni uses herramientas.\n\n'+$('#agGoal').value+'\n\nHojas disponibles:\n'+sheetListText()+'\n\nDevolvé solo un plan numerado de hasta 6 pasos. En cada paso indicá qué hoja usa y qué verificás. Al final listá en una línea tus dos puntos de control humano. No inventes datos.',{modelTier:'default'},t=>{$('#planOut').innerHTML=md(t);});
+    $('#agRun').disabled=false; $('#agPlan').disabled=false;
+  }catch(e){ showErr(errText(e)); $('#agPlan').disabled=false; }
+});
+$('#agRun').addEventListener('click',async()=>{
+  if(!sampleFn) return; setStep(2); toolCalls=[]; readSheets=new Set(); $('#toolLog').innerHTML=''; $('#runOut').innerHTML='<p class="muted">Ejecutando…</p>'; $('#boxRun').hidden=false; $('#boxReview').hidden=true; $('#boxReport').hidden=true; $('#agRun').disabled=true; $('#agPlan').disabled=true;
+  try{
+    findings = await callSample('Sos un agente de apoyo a un contador. Ejecutá el plan aprobado usando las herramientas disponibles (listar_hojas, leer_hoja, sumar_columna). Verificá los totales con sumar_columna en vez de calcular de memoria.\n\nObjetivo original:\n'+$('#agGoal').value+'\n\nPlan aprobado:\n'+planText+'\n\nEjecutá los controles (no redactes todavía el informe). Mostrá los hallazgos en tablas en español de Argentina. Si un control no cierra o los datos son inconsistentes, pará y explicalo. No inventes datos: usá "sin dato". No saques conclusiones sobre irregularidades: solo reportá diferencias. Cerrá con "Supuestos y puntos a revisar".',{tools:TOOLS(),modelTier:'default'},t=>{$('#runOut').innerHTML=md(t);});
+    setStep(3); $('#boxReview').hidden=false; $$('.rv').forEach(c=>c.checked=false); $('#agReport').disabled=true;
+  }catch(e){ showErr(errText(e)); }
+  $('#agRun').disabled=false; $('#agPlan').disabled=false;
+});
+$$('.rv').forEach(c=>c.addEventListener('change',()=>{ $('#agReport').disabled=!$$('.rv').every(x=>x.checked); }));
+$('#agReport').addEventListener('click',async()=>{
+  if(!sampleFn) return; setStep(4); $('#boxReport').hidden=false; $('#boxLog').hidden=true; $('#repOut').innerHTML='<p class="muted">Redactando el borrador…</p>'; $('#agReport').disabled=true;
+  try{
+    reportText = await callSample('Redactá un borrador de informe ejecutivo de una página para el contador, en español de Argentina, solo con base en estos hallazgos revisados. No agregues datos nuevos.\n\nHallazgos:\n'+findings+'\n\nAjustes del contador (tienen prioridad):\n'+($('#agAdj').value.trim()||'ninguno')+'\n\nEstructura: Resumen, Hallazgos priorizados, Supuestos, Próximos pasos. Marcá el documento como BORRADOR sujeto a firma profesional.',{modelTier:'default'},t=>{$('#repOut').innerHTML=md(t);});
+    updFirm();
+  }catch(e){ showErr(errText(e)); }
+});
+function updFirm(){ $('#agFirm').disabled=!( $('#agSign').value.trim() && $('#agOk').checked && reportText ); }
+$('#agSign').addEventListener('input',updFirm); $('#agOk').addEventListener('change',updFirm);
+$('#agFirm').addEventListener('click',()=>{
+  const f=d=>d.toLocaleString('es-AR');
+  const tl=toolCalls.map(x=>'  '+x.t.toLocaleTimeString('es-AR')+'  '+x.tool+'('+Object.values(x.args).join(', ')+') → '+x.res).join('\n')||'  (sin llamadas)';
+  const txt=['BITÁCORA DE EJECUCIÓN','Fecha: '+f(new Date()),'','Entrada: '+([...readSheets].join(', ')||'sin hojas leídas')+' (datos ficticios o anonimizados)','Herramientas invocadas ('+toolCalls.length+'):',tl,'','Control automático: hallazgos generados por el agente, sujetos a revisión','Revisión humana: Fuente, Recálculo, Muestra y Bitácora verificados por quien firma','Ajustes del contador: '+($('#agAdj').value.trim()||'ninguno'),'Informe: borrador v1','','Firma: '+$('#agSign').value.trim()+' — '+f(new Date()),'Nota: la IA asiste; la responsabilidad profesional es de quien firma.'].join('\n');
+  $('#bitacora').textContent=txt; $('#boxLog').hidden=false; setStep(5);
+});
+$('#bCopy').addEventListener('click',()=>copyText($('#bitacora').textContent,$('#bMsg')));
+$('#agCopyGoal').addEventListener('click',()=>copyText($('#agGoal').value,$('#agCopyGoalM')));
+$('#planCopy').addEventListener('click',()=>copyText(planText||'',$('#planCopyM')));
+$('#runCopy').addEventListener('click',()=>copyText(findings||'',$('#runCopyM')));
+$('#logCopy').addEventListener('click',()=>copyText($('#toolLog').innerText,$('#runCopyM')));
+$('#repCopy').addEventListener('click',()=>copyText(reportText||'',$('#repCopyM')));
+$('#bSave').addEventListener('click',()=>saveFile('bitacora.txt',$('#bitacora').textContent,$('#bMsg')));
+$('#ownAdd').addEventListener('click',()=>{
+  const t=$('#ownCsv').value.trim(); if(!t){ $('#ownMsg').textContent='Pegá primero un CSV.'; return; }
+  const rows=t.split(/\r?\n/).map(l=>l.split(',').map(c=>c.trim())); if(rows.length<2){ $('#ownMsg').textContent='Necesita encabezado y al menos una fila.'; return; }
+  sheets['7_Propia']=rows; drawSheets('7_Propia'); $('#ownMsg').textContent='Hoja agregada: '+(rows.length-1)+' filas.';
+});
+
+$('#cpAllD2').addEventListener('click',()=>copyText(bundleText(),$('#datosMsg')));
+$('#dlAll2').addEventListener('click',()=>saveFile('datos-de-prueba-taller.txt',bundleText(),$('#datosMsg')));
+const DESC={'0_LEEME':'Guía del caso: períodos y saldos iniciales','1_LibroIVA':'Registro de IVA compras del estudio','2_ARCA':'Comprobantes recibidos, simulados de ARCA','3_Banco':'Extracto bancario de octubre','4_Mayor':'Mayor de la cuenta banco de octubre','5_ESP':'Estado de situación patrimonial 2024 y 2025','6_ER':'Estado de resultados 2024 y 2025'};
+function drawDatos(){
+  const w=$('#datosList'); w.innerHTML='';
+  Object.keys(KIT).forEach(n=>{
+    const r=KIT[n]; const c=document.createElement('div'); c.className='card stack';
+    c.innerHTML='<div><span class="tag">'+(r.length-1)+' filas</span><h3 style="margin-top:6px">'+esc(n)+'</h3></div><p class="small muted">'+esc(DESC[n]||'')+'. Columnas: '+esc(r[0].join(', '))+'.</p><div class="row"><button class="btn small primary" type="button" data-cp>Copiar</button><button class="btn small" type="button" data-dl>Bajar CSV</button><a class="btn small" href="datos/'+encodeURIComponent(n)+'.csv" target="_blank" rel="noopener">Abrir archivo</a></div>';
+    $('[data-cp]',c).addEventListener('click',()=>copyText(csvOf(r),$('#datosMsg')));
+    $('[data-dl]',c).addEventListener('click',()=>saveFile(n+'.csv',BOM+csvOf(r),$('#datosMsg')));
+    w.appendChild(c);
+  });
+}
+/* ---------- DÓNDE ---------- */
+const WHERE={
+ 'Claude':{
+  proyecto:['Abrí Claude y entrá a la sección Proyectos.','Creá un proyecto nuevo, por ejemplo "Cierre mensual".','Pegá las instrucciones del proyecto (Biblioteca > Proyecto) en el campo de instrucciones.','Subí como conocimiento solo normativa pública, plantillas y criterios del estudio.','Abrí un chat dentro del proyecto y pedí la tarea con el prompt de uso.'],
+  skill:['Guardá la receta como carpeta con un archivo SKILL.md (usá el Constructor y descargá el .md).','Comprimí la carpeta en .zip.','En la configuración de tu cuenta, buscá la sección de Skills (capacidades) y subí el .zip.','Activala y probala con el kit: tiene que encontrar los 10 hallazgos de IVA sin inventar ninguno.','También podés pedirle a Claude en un chat: "creá una skill con esta receta" y pegar el texto.'],
+  agente:['Opción 1, esta app: pedile a Claude que construya una app como esta con el prompt de abajo y publicala como artefacto. Usa la función de preguntarle a Claude con herramientas que leen tus hojas.','Opción 2, en el chat: adjuntá las hojas, pegá el prompt de agente, pedí el plan, aprobalo y revisá cada punto de control.','Opción 3, trabajo sobre carpetas de tu computadora: la app de escritorio o Claude Code, siempre con permisos de solo lectura al principio.','En todas: datos ficticios o anonimizados, bitácora y firma humana.']},
+ 'ChatGPT':{
+  proyecto:['Entrá a Proyectos desde la barra lateral y creá uno nuevo.','Pegá las instrucciones en el campo de instrucciones del proyecto.','Agregá archivos de conocimiento permitidos.','Iniciá chats dentro del proyecto.'],
+  skill:['Usá un GPT personalizado: en Explorar GPTs elegí Crear.','Pegá la receta (SKILL.md) como instrucciones y cargá archivos de referencia.','Probalo con el kit y versioná en el nombre, por ejemplo "Control IVA v1.0".'],
+  agente:['Usá el modo agente si tu plan lo incluye, con el prompt de agente y el kit adjunto.','Pedí el plan, aprobalo y revisá cada resultado antes de seguir.','Sin ese modo, un GPT personalizado con herramientas habilitadas cumple un rol parecido.']},
+ 'Gemini':{
+  proyecto:['Creá un Gem desde la sección de Gems.','Pegá las instrucciones del proyecto y agregá archivos de conocimiento.','Usalo para toda la tarea habitual.'],
+  skill:['Un Gem con la receta completa (SKILL.md pegado como instrucciones) cumple el rol de skill.','Probalo con el kit y mantené una copia versionada del texto.'],
+  agente:['Usá las capacidades de agente que ofrezca tu plan, con el prompt de agente y el kit.','Pedí el plan primero y aprobalo antes de ejecutar.','Mantené permisos mínimos y revisá los resultados.']},
+ 'Copilot':{
+  proyecto:['Si tu organización lo permite, guardá las instrucciones en un cuaderno o página de Copilot y adjuntá archivos permitidos.','Pegá las instrucciones al inicio de cada conversación de la tarea.'],
+  skill:['Creá un agente simple en Copilot Studio o en el creador de agentes de tu suscripción.','Cargá la receta como instrucciones y las plantillas como conocimiento.'],
+  agente:['Armá un agente en Copilot Studio con acciones de solo lectura sobre tus archivos de prueba.','Definí aprobación humana antes de cualquier acción y registro de actividad.','Pedí a tu administrador los permisos y las políticas de datos de tu organización.']}
+};
+let toolSel='Claude';
+function drawWhere(){
+  const w=$('#toolChips'); w.innerHTML='';
+  Object.keys(WHERE).forEach(k=>{ const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=k; b.setAttribute('aria-pressed',k===toolSel?'true':'false'); b.addEventListener('click',()=>{toolSel=k;drawWhere();}); w.appendChild(b); });
+  const s=$('#toolSteps'); s.innerHTML='';
+  [['proyecto','Nivel 2, Proyecto'],['skill','Nivel 3, Skill'],['agente','Nivel 4, Agente']].forEach(([k,t])=>{
+    const c=document.createElement('div'); c.className='card'; c.innerHTML='<h3>'+t+' en '+esc(toolSel)+'</h3><ol class="how">'+WHERE[toolSel][k].map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><div class="row" style="align-items:center"><button class="btn small" type="button">Copiar pasos</button><span class="copied" role="status"></span></div>'; $('button',c).addEventListener('click',()=>copyText(t+' en '+toolSel+'\n'+WHERE[toolSel][k].map((x,i)=>(i+1)+'. '+x).join('\n'),$('.copied',c))); s.appendChild(c);
+  });
+}
+const META='Construí una app web de una sola página para un taller de contadores, llamada "Del Prompt al Proceso". Debe tener: 1) una pestaña con los cuatro niveles (Prompt, Proyecto, Skill, Agente) y un cuestionario de tres preguntas que recomiende el nivel; 2) una biblioteca de prompts con botón de copiar; 3) un constructor de recetas con formulario (objetivo, entradas, pasos, reglas, formato) que genere instrucciones de proyecto, un SKILL.md y un prompt de agente; 4) un agente en vivo que use la función de preguntarle a Claude con herramientas (listar_hojas, leer_hoja, sumar_columna) sobre hojas de datos ficticios que cargues en la propia página; el flujo debe ser: pedir plan, aprobación humana, ejecución con registro de herramientas, revisión humana con casillas (fuente, recálculo, muestra, bitácora), borrador de informe y firma con bitácora generada por código. Usá solo datos ficticios, español de Argentina, diseño moderno y claro, modo claro y oscuro. Publicala como artefacto.';
+$('#metaPrompt').textContent=META;
+$('#mCopy').addEventListener('click',()=>copyText(META,$('#mMsg')));
+
+/* ---------- arranque ---------- */
+drawLadder(); drawDetail(); drawChips(); drawPrompts(); loadStore(); if(!recipes.length){ addRecipe(fromPreset('iva')); } else { if(!cur()) curId=recipes[0].id; drawList(); writeFields(cur()); } drawSheets(); drawWhere(); drawDatos();
+$('#agGoal').value=AGENT; setStep(0);
+showTab(location.hash.slice(1)||'niveles',false);
+(async()=>{ try{ sampleFn=await claude.use('sample'); }catch(e){ sampleFn=null; } if(!sampleFn){ $('#agNo').hidden=false; ['agPlan'].forEach(i=>$('#'+i).disabled=true); } })();
+</script>
+</body>
+</html>

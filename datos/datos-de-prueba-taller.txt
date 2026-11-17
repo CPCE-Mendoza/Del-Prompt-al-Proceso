@@ -1,0 +1,181 @@
+=== 0_LEEME ===
+Tema,Detalle
+Empresa,Distribuidora Andina S.R.L. (ficticia; datos 100% sintéticos)
+1_LibroIVA y 2_ARCA,Control de crédito fiscal IVA compras de octubre 2026
+3_Banco y 4_Mayor,Conciliación bancaria de octubre 2026. Saldo inicial de ambos al 30/09/2026: 1850000. La columna Saldo es el saldo corrido tras cada movimiento.
+5_ESP y 6_ER,Estados contables anuales de los ejercicios 2024 y 2025 (no corresponden a octubre 2026)
+Consigna,No inferir ni estimar datos faltantes: marcarlos. Reportar las inconsistencias sin corregirlas. Toda salida requiere revisión y firma del profesional.
+
+
+=== 1_LibroIVA ===
+Fuente,Fecha,Tipo,Pto Vta,Numero,CUIT,Proveedor,Neto,Alícuota,IVA,Total
+Libro IVA Compras del estudio,2026-10-02,Factura A,5,318,30-99990008-7,Ferretería Industrial Cóndor S.R.L.,798757.84,0.21,167739.15,966496.99
+Libro IVA Compras del estudio,2026-10-03,Factura A,5,144,30-99990009-0,Seguros Aconcagua S.A.,547279.99,0.21,114928.8,662208.79
+Libro IVA Compras del estudio,2026-10-04,Factura A,12,270,30-99990008-1,Estación de Servicio Ruta 7 S.A.,217073.82,0.21,45585.5,262659.32
+Libro IVA Compras del estudio,2026-10-05,Factura A,12,214,30-99990001-5,Aceros del Oeste S.A.,636634.87,0.21,133693.32,770328.19
+Libro IVA Compras del estudio,2026-10-05,Factura A,3,328,30-99990010-4,Gráfica Los Andes S.R.L.,578048.27,0.21,121390.14,699438.41
+Libro IVA Compras del estudio,2026-10-08,Factura A,2,123,30-99990004-9,Energía Mendoza S.A.,42306.71,0.27,11422.81,53729.52
+Libro IVA Compras del estudio,2026-10-09,Factura A,12,174,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,808474.71,0.21,169779.69,978254.4
+Libro IVA Compras del estudio,2026-10-09,Factura A,3,256,30-99990012-0,Mantenimiento Integral Uco S.R.L.,452157.84,0.21,94953.15,547110.99
+Libro IVA Compras del estudio,2026-10-10,Factura A,12,125,30-99990005-7,Servicios Informáticos Huarpe S.R.L.,783252.83,0.21,164483.09,947735.92
+Libro IVA Compras del estudio,2026-10-10,Factura A,3,307,30-99990010-4,Gráfica Los Andes S.R.L.,116834.22,0.21,24535.19,141369.41
+Libro IVA Compras del estudio,2026-10-11,Factura A,2,102,30-99990001-5,Aceros del Oeste S.A.,497289.34,0.21,104430.76,601720.1
+Libro IVA Compras del estudio,2026-10-12,Factura A,5,222,30-99990009-0,Seguros Aconcagua S.A.,878573.85,0.21,184500.51,1063074.36
+Libro IVA Compras del estudio,2026-10-13,Factura A,2,316,30-99990009-0,Seguros Aconcagua S.A.,52860,0.21,11100.6,63960.6
+Libro IVA Compras del estudio,2026-10-14,Factura A,12,158,30-99990012-0,Mantenimiento Integral Uco S.R.L.,122522.62,0.21,25729.75,148252.37
+Libro IVA Compras del estudio,2026-10-15,Factura A,5,149,30-99990010-4,Gráfica Los Andes S.R.L.,168208.4,0.21,35323.76,203532.16
+Libro IVA Compras del estudio,2026-10-15,Factura A,12,230,30-99990012-0,Mantenimiento Integral Uco S.R.L.,505252.77,0.21,106103.08,611355.85
+Libro IVA Compras del estudio,2026-10-15,Factura A,12,230,30-99990012-0,Mantenimiento Integral Uco S.R.L.,505252.77,0.21,106103.08,611355.85
+Libro IVA Compras del estudio,2026-10-16,Factura A,3,191,30-99990012-0,Mantenimiento Integral Uco S.R.L.,169595.42,0.21,35615.04,205210.46
+Libro IVA Compras del estudio,2026-10-17,Factura A,12,165,30-99990002-3,Logística Cuyana S.R.L.,770319.82,0.21,161767.16,932086.98
+Libro IVA Compras del estudio,2026-10-17,Factura A,3,312,30-99990003-1,Packaging Andino S.A.,414955.63,0.21,87140.68,502096.31
+Libro IVA Compras del estudio,2026-10-17,Factura A,5,319,30-99990001-5,Aceros del Oeste S.A.,473182.22,0.21,99368.27,572550.49
+Libro IVA Compras del estudio,2026-10-18,Factura A,3,298,30-99990012-0,Mantenimiento Integral Uco S.R.L.,242864.18,0.21,51001.48,293865.66
+Libro IVA Compras del estudio,2026-10-20,Factura A,5,289,30-99990004-9,Energía Mendoza S.A.,80639.76,0.27,21772.74,102412.5
+Libro IVA Compras del estudio,2026-10-22,Factura A,5,199,30-99990002-3,Logística Cuyana S.R.L.,467159.49,0.21,98103.49,565262.98
+Libro IVA Compras del estudio,2026-10-22,Factura A,12,206,30-99990009-0,Seguros Aconcagua S.A.,948377.7,0.21,199159.32,1147537.02
+Libro IVA Compras del estudio,2026-10-22,Factura A,5,239,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,865612.26,0.21,181778.57,1047390.83
+Libro IVA Compras del estudio,2026-10-26,Factura A,2,138,30-99990008-1,Estación de Servicio Ruta 7 S.A.,382473.49,0.21,80319.43,462792.92
+Libro IVA Compras del estudio,2026-10-26,Factura A,3,183,30-99990009-0,Seguros Aconcagua S.A.,72092.29,0.21,15139.38,87231.67
+Libro IVA Compras del estudio,2026-10-27,Factura A,12,115,30-99990003-1,Packaging Andino S.A.,704790.48,0.21,148006,852796.48
+Libro IVA Compras del estudio,2026-10-27,Factura A,12,126,30-99990006-5,Lácteos del Valle S.A.,850776.95,0.21,178663.16,1029440.11
+Libro IVA Compras del estudio,2026-10-28,Factura A,5,150,30-99990011-2,Agroinsumos Tupungato S.A.,686884.72,0.105,72122.9,759007.62
+Libro IVA Compras del estudio,2026-10-29,Factura A,12,106,30-99990002-3,Logística Cuyana S.R.L.,586937.89,0.21,123256.96,710194.85
+Libro IVA Compras del estudio,2026-10-30,Factura A,12,247,30-99990006-5,Lácteos del Valle S.A.,778830.18,0.105,81777.17,860607.35
+Libro IVA Compras del estudio,2026-10-30,Factura A,2,278,30-99990003-1,Packaging Andino S.A.,52769.61,0.21,11081.62,63851.23
+Libro IVA Compras del estudio,2026-10-30,Factura A,3,287,30-99990008-1,Estación de Servicio Ruta 7 S.A.,801083.13,0.21,168227.46,969310.59
+Libro IVA Compras del estudio,2026-10-30,Factura A,12,325,30-99990008-1,Estación de Servicio Ruta 7 S.A.,150449.29,0.21,31594.35,182043.64
+Libro IVA Compras del estudio,2026-10-31,Factura A,2,184,30-99990003-1,Packaging Andino S.A.,681243,0.21,143061.03,824304.03
+Libro IVA Compras del estudio,2026-10-31,Factura A,5,264,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,98508.59,0.21,20686.8,119195.39
+
+
+=== 2_ARCA ===
+Fuente,Fecha,Tipo,Pto Vta,Numero,CUIT,Proveedor,Neto,Alícuota,IVA,Total
+ARCA - Mis Comprobantes (simulado),2026-09-29,Factura A,5,289,30-99990004-9,Energía Mendoza S.A.,80639.76,0.27,21772.74,102412.5
+ARCA - Mis Comprobantes (simulado),2026-10-02,Factura A,5,318,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,798757.84,0.21,167739.15,966496.99
+ARCA - Mis Comprobantes (simulado),2026-10-03,Factura A,5,144,30-99990009-0,Seguros Aconcagua S.A.,547279.99,0.21,114928.8,662208.79
+ARCA - Mis Comprobantes (simulado),2026-10-05,Factura A,12,214,30-99990001-5,Aceros del Oeste S.A.,636634.87,0.21,133693.32,770328.19
+ARCA - Mis Comprobantes (simulado),2026-10-05,Factura A,12,295,30-99990011-2,Agroinsumos Tupungato S.A.,44669.3,0.105,4690.28,49359.58
+ARCA - Mis Comprobantes (simulado),2026-10-05,Factura A,3,328,30-99990010-4,Gráfica Los Andes S.R.L.,578048.27,0.21,121390.14,699438.41
+ARCA - Mis Comprobantes (simulado),2026-10-07,Factura A,5,132,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,401467.84,0.21,84308.25,485776.09
+ARCA - Mis Comprobantes (simulado),2026-10-07,Factura A,5,213,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,307880.47,0.21,64654.9,372535.37
+ARCA - Mis Comprobantes (simulado),2026-10-08,Factura A,2,123,30-99990004-9,Energía Mendoza S.A.,42306.71,0.27,11422.81,53729.52
+ARCA - Mis Comprobantes (simulado),2026-10-09,Factura A,12,174,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,808474.71,0.21,169779.69,978254.4
+ARCA - Mis Comprobantes (simulado),2026-10-09,Factura A,3,256,30-99990012-0,Mantenimiento Integral Uco S.R.L.,452157.84,0.21,94953.15,547110.99
+ARCA - Mis Comprobantes (simulado),2026-10-10,Factura A,12,125,30-99990005-7,Servicios Informáticos Huarpe S.R.L.,783252.83,0.21,164483.09,947735.92
+ARCA - Mis Comprobantes (simulado),2026-10-10,Factura A,3,307,30-99990010-4,Gráfica Los Andes S.R.L.,116834.22,0.21,24535.19,141369.41
+ARCA - Mis Comprobantes (simulado),2026-10-11,Factura A,2,102,30-99990001-5,Aceros del Oeste S.A.,497289.34,0.21,104430.76,601720.1
+ARCA - Mis Comprobantes (simulado),2026-10-12,Factura A,5,222,30-99990009-0,Seguros Aconcagua S.A.,878573.85,0.21,184500.51,1063074.36
+ARCA - Mis Comprobantes (simulado),2026-10-13,Factura A,2,316,30-99990009-0,Seguros Aconcagua S.A.,52860,0.21,11100.6,63960.6
+ARCA - Mis Comprobantes (simulado),2026-10-14,Factura A,12,158,30-99990012-0,Mantenimiento Integral Uco S.R.L.,122522.62,0.21,25729.75,148252.37
+ARCA - Mis Comprobantes (simulado),2026-10-15,Factura A,5,149,30-99990010-4,Gráfica Los Andes S.R.L.,168208.4,0.21,35323.76,203532.16
+ARCA - Mis Comprobantes (simulado),2026-10-15,Factura A,12,230,30-99990012-0,Mantenimiento Integral Uco S.R.L.,505252.77,0.21,106103.08,611355.85
+ARCA - Mis Comprobantes (simulado),2026-10-16,Factura A,3,191,30-99990012-0,Mantenimiento Integral Uco S.R.L.,169595.42,0.21,35615.04,205210.46
+ARCA - Mis Comprobantes (simulado),2026-10-17,Factura A,12,165,30-99990002-3,Logística Cuyana S.R.L.,770319.82,0.21,161767.16,932086.98
+ARCA - Mis Comprobantes (simulado),2026-10-17,Factura A,3,312,30-99990003-1,Packaging Andino S.A.,414955.63,0.21,87140.68,502096.31
+ARCA - Mis Comprobantes (simulado),2026-10-17,Factura A,5,319,30-99990001-5,Aceros del Oeste S.A.,473182.22,0.21,99368.27,572550.49
+ARCA - Mis Comprobantes (simulado),2026-10-18,Factura A,3,298,30-99990012-0,Mantenimiento Integral Uco S.R.L.,242864.18,0.21,51001.48,293865.66
+ARCA - Mis Comprobantes (simulado),2026-10-22,Factura A,5,199,30-99990002-3,Logística Cuyana S.R.L.,467159.49,0.21,98103.49,565262.98
+ARCA - Mis Comprobantes (simulado),2026-10-22,Factura A,12,206,30-99990009-0,Seguros Aconcagua S.A.,948377.7,0.21,199159.32,1147537.02
+ARCA - Mis Comprobantes (simulado),2026-10-22,Factura A,5,239,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,865612.26,0.21,181778.57,1047390.83
+ARCA - Mis Comprobantes (simulado),2026-10-26,Factura A,2,138,30-99990008-1,Estación de Servicio Ruta 7 S.A.,382473.49,0.21,80319.43,462792.92
+ARCA - Mis Comprobantes (simulado),2026-10-26,Factura A,3,183,30-99990009-0,Seguros Aconcagua S.A.,63092.29,0.21,13249.38,76341.67
+ARCA - Mis Comprobantes (simulado),2026-10-27,Factura A,12,115,30-99990003-1,Packaging Andino S.A.,704790.48,0.21,148006,852796.48
+ARCA - Mis Comprobantes (simulado),2026-10-27,Factura A,12,126,30-99990006-5,Lácteos del Valle S.A.,850776.95,0.105,89331.58,940108.53
+ARCA - Mis Comprobantes (simulado),2026-10-29,Factura A,12,106,30-99990002-3,Logística Cuyana S.R.L.,586937.89,0.21,123256.96,710194.85
+ARCA - Mis Comprobantes (simulado),2026-10-30,Factura A,12,247,30-99990006-5,Lácteos del Valle S.A.,778830.18,0.105,81777.17,860607.35
+ARCA - Mis Comprobantes (simulado),2026-10-30,Factura A,2,278,30-99990003-1,Packaging Andino S.A.,52769.61,0.21,11081.62,63851.23
+ARCA - Mis Comprobantes (simulado),2026-10-30,Factura A,3,287,30-99990008-1,Estación de Servicio Ruta 7 S.A.,801083.13,0.21,168227.46,969310.59
+ARCA - Mis Comprobantes (simulado),2026-10-30,Factura A,12,325,30-99990008-1,Estación de Servicio Ruta 7 S.A.,150449.29,0.21,31594.35,182043.64
+ARCA - Mis Comprobantes (simulado),2026-10-31,Factura A,2,184,30-99990003-1,Packaging Andino S.A.,681243,0.21,143061.03,824304.03
+ARCA - Mis Comprobantes (simulado),2026-10-31,Factura A,5,264,30-99990007-3,Ferretería Industrial Cóndor S.R.L.,98508.59,0.21,20686.8,119195.39
+
+
+=== 3_Banco ===
+Fecha,Concepto,Importe,Saldo
+2026-10-02,Pago proveedor Energía Mendoza S.A.,-122497.4,1727502.6
+2026-10-03,Cobranza cliente Supermercados del Sur,273721.58,2001224.18
+2026-10-03,Pago proveedor Logística Cuyana S.R.L.,-319413.35,1681810.83
+2026-10-03,Pago proveedor Seguros Aconcagua S.A.,-397069.82,1284741.01
+2026-10-04,Pago proveedor Seguros Aconcagua S.A.,-589675.82,695065.19
+2026-10-06,Cobranza cliente Bodega Los Álamos,429298.16,1124363.35
+2026-10-07,Cobranza cliente Supermercados del Sur,732921.58,1857284.93
+2026-10-08,Pago proveedor Mantenimiento Integral Uco S.R.L.,-567897.78,1289387.15
+2026-10-11,Cobranza cliente Supermercados del Sur,466273.77,1755660.92
+2026-10-11,Pago proveedor Ferretería Industrial Cóndor S.R.L.,-490560.68,1265100.24
+2026-10-11,Pago proveedor Servicios Informáticos Huarpe S.R.L.,-465375.41,799724.83
+2026-10-13,Cobranza cliente Bodega Los Álamos,184937.01,984661.84
+2026-10-14,Cobranza cliente Bodega Los Álamos,218034.76,1202696.6
+2026-10-14,Cobranza cliente Vinos Alta Montaña,860587.28,2063283.88
+2026-10-15,Pago proveedor Estación de Servicio Ruta 7 S.A.,-316949.41,1746334.47
+2026-10-15,Pago proveedor Energía Mendoza S.A. (factura 10/2026),-45900,1700434.47
+2026-10-18,Pago proveedor Gráfica Los Andes S.R.L.,-135760.7,1564673.77
+2026-10-21,Pago proveedor Aceros del Oeste S.A.,-446261.77,1118412.0
+2026-10-21,Transferencia recibida - cliente no identificado,138000,1256412.0
+2026-10-28,Cobranza cliente Supermercados del Sur,258191.31,1514603.31
+2026-10-31,Comisión mantenimiento de cuenta,-18500,1496103.31
+2026-10-31,IVA 21% s/ comisión,-3885,1492218.31
+2026-10-31,Imp. Ley 25.413 (créditos y débitos),-41230.55,1450987.76
+
+
+=== 4_Mayor ===
+Fecha,Concepto,Importe,Saldo
+2026-10-02,Pago proveedor Energía Mendoza S.A.,-122497.4,1727502.6
+2026-10-03,Cobranza cliente Supermercados del Sur,273721.58,2001224.18
+2026-10-03,Pago proveedor Logística Cuyana S.R.L.,-319413.35,1681810.83
+2026-10-03,Pago proveedor Seguros Aconcagua S.A.,-397069.82,1284741.01
+2026-10-04,Pago proveedor Seguros Aconcagua S.A.,-589675.82,695065.19
+2026-10-06,Cobranza cliente Bodega Los Álamos,429298.16,1124363.35
+2026-10-07,Cobranza cliente Supermercados del Sur,732921.58,1857284.93
+2026-10-08,Pago proveedor Mantenimiento Integral Uco S.R.L.,-567897.78,1289387.15
+2026-10-11,Cobranza cliente Supermercados del Sur,466273.77,1755660.92
+2026-10-11,Pago proveedor Ferretería Industrial Cóndor S.R.L.,-490560.68,1265100.24
+2026-10-11,Pago proveedor Servicios Informáticos Huarpe S.R.L.,-465375.41,799724.83
+2026-10-13,Cobranza cliente Bodega Los Álamos,184937.01,984661.84
+2026-10-14,Cobranza cliente Bodega Los Álamos,218034.76,1202696.6
+2026-10-14,Cobranza cliente Vinos Alta Montaña,860587.28,2063283.88
+2026-10-15,Pago proveedor Estación de Servicio Ruta 7 S.A.,-316949.41,1746334.47
+2026-10-15,Pago proveedor Energía Mendoza S.A. (factura 10/2026),-54900,1691434.47
+2026-10-18,Pago proveedor Gráfica Los Andes S.R.L.,-135760.7,1555673.77
+2026-10-21,Pago proveedor Aceros del Oeste S.A.,-446261.77,1109412.0
+2026-10-27,Cheque 00045211 - Packaging Andino S.A.,-312500,796912.0
+2026-10-28,Cobranza cliente Supermercados del Sur,258191.31,1055103.31
+2026-10-28,Cheque 00045212 - Logística Cuyana S.R.L.,-187300,867803.31
+2026-10-30,Cheque 00045213 - Gráfica Los Andes S.R.L.,-95400,772403.31
+2026-10-30,Depósito en cuenta - cobranza 30/10,420000,1192403.31
+2026-10-31,Depósito en cuenta - cobranza 31/10,265000,1457403.31
+
+
+=== 5_ESP ===
+Concepto,2024,2025
+Caja y bancos,2150000,3480000
+Créditos por ventas,6900000,9850000
+Bienes de cambio,7400000,8950000
+Otros créditos,980000,1420000
+Activo corriente,17430000,23700000
+Bienes de uso,11200000,12050000
+Activo no corriente,11200000,12050000
+ACTIVO TOTAL,28630000,35750000
+Deudas comerciales,5100000,7200000
+Deudas bancarias y financieras,3900000,5300000
+Deudas fiscales y sociales,1700000,2050000
+Pasivo corriente,10700000,14550000
+Deudas bancarias a largo plazo,4000000,3200000
+Pasivo no corriente,4000000,3200000
+PASIVO TOTAL,14700000,17750000
+Patrimonio neto,13930000,17000000
+PASIVO + PATRIMONIO NETO,28630000,34750000
+
+
+=== 6_ER ===
+Concepto,2024,2025
+Ventas netas,41200000,52800000
+Costo de ventas,-28300000,-36100000
+Resultado bruto,12900000,16700000
+Gastos de comercialización,-4100000,-5300000
+Gastos de administración,-3300000,-4050000
+Resultado operativo,5500000,7350000
+Resultados financieros y por tenencia,-1900000,-2650000
+Resultado antes de impuesto,3600000,4700000
+Impuesto a las ganancias,-1050000,-1650000
+RESULTADO NETO,2550000,3050000
